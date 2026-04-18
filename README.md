@@ -1,0 +1,4 @@
+DEV
+
+- scaricare vips
+- cmake
