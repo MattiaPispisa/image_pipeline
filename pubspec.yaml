@@ -11,8 +11,8 @@ environment:
 dependencies:
   code_assets: ^1.0.0
   hooks: ^1.0.0
-  en_logger: 
-  http: 
+  en_logger: ^1.3.0
+  http: ^1.0.0
 
 dev_dependencies:
   ffi: ^2.1.0
