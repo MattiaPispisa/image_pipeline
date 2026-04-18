@@ -4,11 +4,14 @@ import 'package:hooks/hooks.dart';
 import 'package:code_assets/code_assets.dart';
 import 'package:en_logger/en_logger.dart';
 
-const _repoOwner = 'MattiaPispisa';
-const _repoName = 'image_pipeline';
+const _repoOwner =
+    'MattiaPispisa'; // TODO(MattiaPispisa): can be derived from pubspec
+const _repoName =
+    'image_pipeline'; // TODO(MattiaPispisa): can be derived from pubspec
 const _cmakeFileName = 'io_transformer';
 const _ioRemoteAssetFileName = 'io_transformer';
-const _ioCodeAssetName = 'io_transformer_bindings_generated';
+const _ioCodeAssetName =
+    'io_transformer_bindings_generated'; // TODO(MattiaPispisa): can be derived from pubspec
 
 void main(List<String> args) async {
   await build(args, (input, output) async {

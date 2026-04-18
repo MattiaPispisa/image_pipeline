@@ -6,8 +6,8 @@ import 'package:image_pipeline/src/native/io/io_transformer_bindings_generated.d
     as bindings;
 import 'package:image_pipeline/src/pipeline.dart';
 
-class IOPipeline implements Pipeline {
-  IOPipeline() : _operations = [];
+class IoPipeline implements Pipeline {
+  IoPipeline() : _operations = [];
 
   final List<int> _operations;
 
