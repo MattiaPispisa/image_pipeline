@@ -80,5 +80,7 @@ uint8_t* transform_image(const uint8_t* input_buffer, size_t input_length, const
 }
 
 void free_image_buffer(uint8_t* buffer) {
-    if (buffer) g_free(buffer);
+    if (buffer) {
+        g_free(buffer);
+    }
 }

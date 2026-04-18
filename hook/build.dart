@@ -11,7 +11,7 @@ const _repoName =
 const _cmakeFileName = 'io_transformer';
 const _ioRemoteAssetFileName = 'io_transformer';
 const _ioCodeAssetName =
-    'io_transformer_bindings_generated'; // TODO(MattiaPispisa): can be derived from pubspec
+    'io_transformer'; // TODO(MattiaPispisa): can be derived from pubspec
 
 void main(List<String> args) async {
   await build(args, (input, output) async {

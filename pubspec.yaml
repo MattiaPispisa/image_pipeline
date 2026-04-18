@@ -24,6 +24,7 @@ ffigen:
   output: 'lib/src/native/io/io_transformer_bindings_generated.dart'
 
   ffi-native:
+    assetId: 'package:image_pipeline/io_transformer'
 
   headers:
     entry-points:

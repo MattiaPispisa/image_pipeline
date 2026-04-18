@@ -4,10 +4,16 @@
 // ignore_for_file: type=lint
 import 'dart:ffi' as ffi;
 
-@ffi.Native<ffi.Bool Function(ffi.Pointer<ffi.Char>)>(symbol: 'init_vips')
+@ffi.Native<ffi.Bool Function(ffi.Pointer<ffi.Char>)>(
+  symbol: 'init_vips',
+  assetId: 'package:image_pipeline/io_transformer',
+)
 external bool init_vips(ffi.Pointer<ffi.Char> argv0);
 
-@ffi.Native<ffi.Void Function()>(symbol: 'shutdown_vips')
+@ffi.Native<ffi.Void Function()>(
+  symbol: 'shutdown_vips',
+  assetId: 'package:image_pipeline/io_transformer',
+)
 external void shutdown_vips();
 
 @ffi.Native<
@@ -18,7 +24,7 @@ external void shutdown_vips();
     ffi.Size,
     ffi.Pointer<ffi.Size>,
   )
->(symbol: 'transform_image')
+>(symbol: 'transform_image', assetId: 'package:image_pipeline/io_transformer')
 external ffi.Pointer<ffi.Uint8> transform_image(
   ffi.Pointer<ffi.Uint8> input_buffer,
   int input_length,
@@ -29,5 +35,6 @@ external ffi.Pointer<ffi.Uint8> transform_image(
 
 @ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Uint8>)>(
   symbol: 'free_image_buffer',
+  assetId: 'package:image_pipeline/io_transformer',
 )
 external void free_image_buffer(ffi.Pointer<ffi.Uint8> buffer);

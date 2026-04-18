@@ -1,5 +1,6 @@
 import 'dart:ffi';
 
+import 'package:ffi/ffi.dart' as ffi;
 import 'package:image_pipeline/src/engine.dart';
 import 'io_transformer_bindings_generated.dart' as bindings;
 
@@ -12,15 +13,19 @@ class IoTransformerEngine extends TransformerEngine {
   Future<void> ensureInitialized() async {
     if (_isInitialized) return;
 
-    // init_vips takes argv0 as parameter, but VIPS_INIT(NULL) is fine.
-    // In Dart FFI we pass nullptr.
-    final result = bindings.init_vips(nullptr);
+    final namePtr = 'image_pipeline'.toNativeUtf8();
 
-    if (!result) {
-      throw Exception('Failed to initialize libvips');
+    try {
+      final result = bindings.init_vips(namePtr.cast<Char>());
+
+      if (!result) {
+        throw Exception('Failed to initialize libvips');
+      }
+
+      _isInitialized = true;
+    } finally {
+      ffi.malloc.free(namePtr);
     }
-
-    _isInitialized = true;
   }
 
   @override
