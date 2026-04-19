@@ -16,7 +16,7 @@ class IoTransformerEngine extends TransformerEngine {
     final namePtr = 'image_pipeline'.toNativeUtf8();
 
     try {
-      final result = bindings.init_vips(namePtr.cast<Char>());
+      final result = bindings.init_engine(namePtr.cast<Char>());
 
       if (!result) {
         throw Exception('Failed to initialize libvips');
@@ -32,7 +32,7 @@ class IoTransformerEngine extends TransformerEngine {
   Future<void> terminate() async {
     if (!_isInitialized) return;
 
-    bindings.shutdown_vips();
+    bindings.shutdown_engine();
     _isInitialized = false;
   }
 }

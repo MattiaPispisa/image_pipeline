@@ -7,7 +7,9 @@ import 'package:image_pipeline/src/pipeline_factory.dart';
 import 'package:image_pipeline/src/engine.dart';
 
 abstract class ImageTransformer {
-  factory ImageTransformer() => _ImplImageTransformer(createPipeline());
+  factory ImageTransformer.native() => ImageTransformer(createPipeline());
+  factory ImageTransformer(Pipeline pipeline) =>
+      _ImplImageTransformer(pipeline);
 
   /// Initializes the image processing library.
   /// This is called automatically on the first transformation, but can be

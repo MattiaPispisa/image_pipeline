@@ -1,9 +1,9 @@
-#include "transform.h"
+#include "../transform.h"
 #include <vips/vips.h>
 #include <stdio.h>
 
-bool init_vips(const char* argv0) { return VIPS_INIT(argv0) == 0; }
-void shutdown_vips() { vips_shutdown(); }
+bool init_engine(const char* argv0) { return VIPS_INIT(argv0) == 0; }
+void shutdown_engine() { vips_shutdown(); }
 
 uint8_t* transform_image(const uint8_t* input_buffer, size_t input_length, const int32_t* ops_array, size_t ops_count, size_t* out_length) {
     VipsImage *image = vips_image_new_from_buffer(input_buffer, input_length, "", NULL);

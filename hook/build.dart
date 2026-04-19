@@ -3,12 +3,13 @@ import 'package:http/http.dart' as http;
 import 'package:hooks/hooks.dart';
 import 'package:code_assets/code_assets.dart';
 import 'package:en_logger/en_logger.dart';
+import 'package:native_toolchain_c/native_toolchain_c.dart' as native_toolchain;
 
 const _repoOwner =
     'MattiaPispisa'; // TODO(MattiaPispisa): can be derived from pubspec
 const _repoName =
     'image_pipeline'; // TODO(MattiaPispisa): can be derived from pubspec
-const _cmakeFileName = 'io_transformer';
+const _cmakeFileName = 'io_desktop_transformer';
 const _ioRemoteAssetFileName = 'io_transformer';
 const _ioCodeAssetName =
     'io_transformer'; // TODO(MattiaPispisa): can be derived from pubspec
@@ -17,39 +18,90 @@ void main(List<String> args) async {
   await build(args, (input, output) async {
     final logger = EnLogger(handlers: [_PrintHandler()]);
 
-    try {
-      final (osName, ext, archName) = _getOsInfo(input);
-      final versionTag = await _getLibraryVersion(input);
+    final forceMobileNativeCode =
+        Platform.environment['FORCE_MOB_NAT_CODE'] == 'true';
 
-      final downloadFileName = '$_ioRemoteAssetFileName-$osName-$archName.$ext';
-      Uri? finalLibraryUri = await _downloadPrebuiltAsset(
-        input: input,
-        logger: logger,
-        version: versionTag,
-        fileName: downloadFileName,
-      );
+    if (forceMobileNativeCode && !input.isMobile) {
+      logger.info('Forcing mobile native code build...');
+    }
 
-      if (finalLibraryUri == null) {
-        logger.warning('Download failed. Starting local build...');
-        finalLibraryUri = await _fallbackLocalBuild(
-          input: input,
-          output: output,
-          logger: logger,
-          ext: ext,
-        );
-      }
-
-      _addAssetToOutput(input, output, finalLibraryUri);
-
-      logger.info('Build hook completed successfully!');
-    } catch (e, stackTrace) {
-      logger.error(
-        'Fatal error during native hook execution: $e',
-        stackTrace: stackTrace,
-      );
-      exitCode = 1;
+    if (input.isMobile || forceMobileNativeCode) {
+      await _mobileBuild(input: input, output: output, logger: logger);
+    } else {
+      await _desktopBuild(input: input, output: output, logger: logger);
     }
   });
+}
+
+Future<void> _mobileBuild({
+  required EnLogger logger,
+  required BuildInput input,
+  required BuildOutputBuilder output,
+}) async {
+  try {
+    logger.info(
+      'Mobile target detected (${input.config.code.targetOS}). Starting local C compilation...',
+    );
+
+    final builder = native_toolchain.CBuilder.library(
+      name:
+          _ioCodeAssetName, // Aggiunto: definisce il nome base della libreria (es: libio_transformer.so)
+      assetName: _ioCodeAssetName,
+      sources: [
+        input.packageRoot.resolve('native/io/mobile/transform.c').toFilePath(),
+      ],
+    );
+
+    // CBuilder si occupa automaticamente di aggiungere l'asset a `output.assets.code`
+    await builder.run(input: input, output: output);
+
+    logger.info('Mobile build completed successfully!');
+  } catch (e, stackTrace) {
+    logger.error(
+      'Fatal error during mobile build execution: $e',
+      stackTrace: stackTrace,
+    );
+    exitCode = 1;
+  }
+}
+
+Future<void> _desktopBuild({
+  required EnLogger logger,
+  required BuildInput input,
+  required BuildOutputBuilder output,
+}) async {
+  try {
+    final (osName, ext, archName) = _getOsInfo(input);
+    final versionTag = await _getLibraryVersion(input);
+
+    final downloadFileName = '$_ioRemoteAssetFileName-$osName-$archName.$ext';
+    Uri? finalLibraryUri = await _downloadPrebuiltAsset(
+      input: input,
+      logger: logger,
+      version: versionTag,
+      fileName: downloadFileName,
+    );
+
+    if (finalLibraryUri == null) {
+      logger.warning('Download failed. Starting local build...');
+      finalLibraryUri = await _fallbackLocalBuild(
+        input: input,
+        output: output,
+        logger: logger,
+        ext: ext,
+      );
+    }
+
+    _addAssetToOutput(input, output, finalLibraryUri);
+
+    logger.info('Build hook completed successfully!');
+  } catch (e, stackTrace) {
+    logger.error(
+      'Fatal error during native hook execution: $e',
+      stackTrace: stackTrace,
+    );
+    exitCode = 1;
+  }
 }
 
 /// Get OS information.
@@ -144,7 +196,9 @@ Future<Uri> _fallbackLocalBuild({
   required String ext,
 }) async {
   final outDir = input.outputDirectory.toFilePath();
-  final nativeSrcDir = input.packageRoot.resolve('native/io').toFilePath();
+  final nativeSrcDir = input.packageRoot
+      .resolve('native/io/desktop')
+      .toFilePath();
 
   logger.info('Running CMake configuration...');
   final cmakeConfig = await Process.run('cmake', [
@@ -202,6 +256,11 @@ void _addAssetToOutput(
       linkMode: DynamicLoadingBundled(),
     ),
   );
+}
+
+extension _BuildInputHelper on BuildInput {
+  bool get isMobile =>
+      config.code.targetOS == OS.android || config.code.targetOS == OS.iOS;
 }
 
 class _PrintHandler extends EnLoggerHandler {

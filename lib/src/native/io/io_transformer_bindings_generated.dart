@@ -5,16 +5,16 @@
 import 'dart:ffi' as ffi;
 
 @ffi.Native<ffi.Bool Function(ffi.Pointer<ffi.Char>)>(
-  symbol: 'init_vips',
+  symbol: 'init_engine',
   assetId: 'package:image_pipeline/io_transformer',
 )
-external bool init_vips(ffi.Pointer<ffi.Char> argv0);
+external bool init_engine(ffi.Pointer<ffi.Char> argv0);
 
 @ffi.Native<ffi.Void Function()>(
-  symbol: 'shutdown_vips',
+  symbol: 'shutdown_engine',
   assetId: 'package:image_pipeline/io_transformer',
 )
-external void shutdown_vips();
+external void shutdown_engine();
 
 @ffi.Native<
   ffi.Pointer<ffi.Uint8> Function(

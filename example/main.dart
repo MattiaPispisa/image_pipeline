@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:image_pipeline/image_pipeline.dart';
 
-const _sampleImagePath = 'example/sample.jpeg';
+const _sampleImagePath = 'example/sample.jpeg'; //../assets/sample/
 const _sampleOutputImagePath = 'example/transformed_sample.jpeg';
 
 void main() async {
@@ -10,7 +10,7 @@ void main() async {
 
   try {
     print('Transforming image...');
-    final outputBytes = await ImageTransformer().transform(inputBytes, [
+    final outputBytes = await ImageTransformer.native().transform(inputBytes, [
       const ResizeOp(maxWidth: 1920, maxHeight: 1920),
       const QualityOp(quality: 80),
     ]);

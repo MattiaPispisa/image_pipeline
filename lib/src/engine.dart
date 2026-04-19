@@ -10,6 +10,12 @@ abstract class TransformerEngine {
     return _instance!;
   }
 
+  /// Injects a mock instance for testing purposes.
+  static void setMockInstanceForTesting(TransformerEngine? mock) {
+    _instance = mock;
+  }
+
+
   /// Ensures that the engine is initialized.
   /// This can be called multiple times safely.
   Future<void> ensureInitialized();

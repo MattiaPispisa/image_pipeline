@@ -13,4 +13,4 @@ coverage/
 # ignore generated mocks
 **/*.mocks.dart
 
-native/io/build
+native/io/desktop/build
