@@ -79,6 +79,11 @@ uint8_t* transform_image(const uint8_t* input_buffer, size_t input_length, const
                 scale = scale_y;
             }
 
+            // Non permettiamo di ingrandire l'immagine (upscaling non permesso)
+            if (scale > 1.0) {
+                scale = 1.0;
+            }
+
             if (scale != 1.0) {
                 int new_w = (int)(width * scale);
                 int new_h = (int)(height * scale);

@@ -1,0 +1,121 @@
+name: Build Desktop Artifacts (VIPS)
+
+on:
+  workflow_dispatch: 
+  release:
+    types: [published]
+
+jobs:
+  build-desktop:
+    strategy:
+      matrix:
+        include:
+          # Linux x64 (PC e Server standard)
+          - os: ubuntu-latest
+            dart_os: Linux
+            ext: so
+            arch: x64
+            
+          # Linux ARM64 (Raspberry Pi, Server AWS Graviton, ecc.)
+          - os: ubuntu-24.04-arm
+            dart_os: Linux
+            ext: so
+            arch: arm64
+          
+          # macOS Apple Silicon (Mac M1/M2/M3 - arm64)
+          - os: macos-14
+            dart_os: macOS
+            ext: dylib
+            arch: arm64
+            
+          # macOS Intel (Mac storici - x64)
+          - os: macos-13
+            dart_os: macOS
+            ext: dylib
+            arch: x64
+            
+          # Windows x64 (PC Windows Intel/AMD standard)
+          - os: windows-latest
+            dart_os: Windows
+            ext: dll
+            arch: x64
+            msystem: MINGW64
+            msys_prefix: mingw-w64-x86_64
+            
+          # Windows ARM64 (PC Windows con Snapdragon X Elite/Copilot+)
+          - os: windows-latest
+            dart_os: Windows
+            ext: dll
+            arch: arm64
+            msystem: CLANGARM64
+            msys_prefix: mingw-w64-clang-aarch64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # --- 1. INSTALLAZIONE DIPENDENZE ---
+
+      - name: Install Dependencies (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake pkg-config libvips-dev
+
+      - name: Install Dependencies (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          brew install cmake pkg-config vips
+
+      - name: Install Dependencies (Windows via MSYS2)
+        if: startsWith(matrix.os, 'windows')
+        uses: msys2/setup-msys2@v2
+        with:
+          # Inietta dinamicamente il sottosistema (MINGW64 o CLANGARM64)
+          msystem: ${{ matrix.msystem }}
+          update: true
+          # Scarica il toolchain e libvips specifici per l'architettura
+          install: >-
+            ${{ matrix.msys_prefix }}-cmake
+            ${{ matrix.msys_prefix }}-pkgconf
+            ${{ matrix.msys_prefix }}-vips
+            ${{ matrix.msys_prefix }}-toolchain
+
+      # --- 2. COMPILAZIONE ---
+
+      - name: Build Library (Ubuntu / macOS)
+        if: "!startsWith(matrix.os, 'windows')"
+        run: |
+          mkdir build
+          cd build
+          cmake ../native/io/desktop -DCMAKE_BUILD_TYPE=Release
+          make
+
+      - name: Build Library (Windows)
+        if: startsWith(matrix.os, 'windows')
+        shell: msys2 {0} 
+        run: |
+          mkdir build
+          cd build
+          cmake ../native/io/desktop -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+          cmake --build .
+
+      # --- 3. RINOMINA E UPLOAD NELLA RELEASE ---
+
+      - name: Rename compiled binary (Ubuntu / macOS)
+        if: "!startsWith(matrix.os, 'windows')"
+        run: |
+          mv build/*io_desktop_transformer*.${{ matrix.ext }} io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.${{ matrix.ext }}
+
+      - name: Rename compiled binary (Windows)
+        if: startsWith(matrix.os, 'windows')
+        shell: msys2 {0}
+        run: |
+          mv build/*io_desktop_transformer*.${{ matrix.ext }} io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.${{ matrix.ext }}
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.${{ matrix.ext }}
