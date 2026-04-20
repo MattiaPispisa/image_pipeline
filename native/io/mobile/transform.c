@@ -1,6 +1,6 @@
 #include "../transform.h"
 
-sdsds
+#include <math.h>
 
 // Definendo queste macro PRIMA degli include, diciamo al compilatore
 // di inserire l'implementazione del codice proprio qui dentro.
@@ -125,8 +125,6 @@ uint8_t* transform_image(const uint8_t* input_buffer, size_t input_length, const
     int write_success = stbi_write_jpg_to_func(write_to_mem, &mem, width, height, channels, img_data, export_quality);
 
     // L'immagine decompressa non ci serve più
-    // Usiamo free() se l'abbiamo allocata col resize, stbi_image_free se è l'originale.
-    // Fortunatamente in stb stbi_image_free è essenzialmente un wrapper di free().
     stbi_image_free(img_data); 
 
     if (!write_success) {
@@ -141,6 +139,6 @@ uint8_t* transform_image(const uint8_t* input_buffer, size_t input_length, const
 // Funzione chiamata da Dart per liberare il buffer finale
 void free_image_buffer(uint8_t* buffer) {
     if (buffer) {
-        free(buffer); // Usiamo free() standard perché l'abbiamo allocato con realloc
+        free(buffer); 
     }
 }

@@ -18,14 +18,7 @@ void main(List<String> args) async {
   await build(args, (input, output) async {
     final logger = EnLogger(handlers: [_PrintHandler()]);
 
-    final forceMobileNativeCode =
-        Platform.environment['FORCE_MOB_NAT_CODE'] == 'true';
-
-    if (forceMobileNativeCode && !input.isMobile) {
-      logger.info('Forcing mobile native code build...');
-    }
-
-    if (input.isMobile || forceMobileNativeCode) {
+    if (input.isMobile) {
       await _mobileBuild(input: input, output: output, logger: logger);
     } else {
       await _desktopBuild(input: input, output: output, logger: logger);
@@ -44,12 +37,12 @@ Future<void> _mobileBuild({
     );
 
     final builder = native_toolchain.CBuilder.library(
-      name:
-          _ioCodeAssetName, // Aggiunto: definisce il nome base della libreria (es: libio_transformer.so)
+      name: input.packageName,
       assetName: _ioCodeAssetName,
       sources: [
         input.packageRoot.resolve('native/io/mobile/transform.c').toFilePath(),
       ],
+      libraries: ['m'],
     );
 
     // CBuilder si occupa automaticamente di aggiungere l'asset a `output.assets.code`
