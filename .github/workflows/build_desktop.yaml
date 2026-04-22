@@ -46,12 +46,12 @@ jobs:
             msys_prefix: mingw-w64-x86_64
             
           # Windows ARM64 (PC Windows con Snapdragon X Elite/Copilot+)
-          # - os: windows-latest
-          #  dart_os: Windows
-          #  ext: dll
-          #  arch: arm64
-          #  msystem: CLANGARM64
-          #  msys_prefix: mingw-w64-clang-aarch64
+          - os: windows-latest
+            dart_os: Windows
+            ext: dll
+            arch: arm64
+            msystem: CLANGARM64
+            msys_prefix: mingw-w64-clang-aarch64
 
     runs-on: ${{ matrix.os }}
 
@@ -83,7 +83,7 @@ jobs:
           install: >-
             ${{ matrix.msys_prefix }}-cmake
             ${{ matrix.msys_prefix }}-pkgconf
-            ${{ matrix.msys_prefix }}-vips
+            ${{ matrix.msys_prefix }}-libvips
             ${{ matrix.msys_prefix }}-toolchain
 
       # --- 2. COMPILAZIONE ---
