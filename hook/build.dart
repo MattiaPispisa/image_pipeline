@@ -109,13 +109,13 @@ Future<void> _desktopBuild({
 
   // Determina OS ed estensione
   if (targetOS == OS.macOS) {
-    osName = 'macOS';
+    osName = 'macos';
     ext = 'dylib';
   } else if (targetOS == OS.linux) {
-    osName = 'Linux';
+    osName = 'linux';
     ext = 'so';
   } else if (targetOS == OS.windows) {
-    osName = 'Windows';
+    osName = 'windows';
     ext = 'dll';
   } else {
     throw UnsupportedError('Unsupported OS: $targetOS');

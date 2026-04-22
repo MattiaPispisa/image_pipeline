@@ -15,31 +15,31 @@ jobs:
         include:
           # Linux x64 (PC e Server standard)
           - os: ubuntu-latest
-            dart_os: Linux
+            dart_os: linux
             ext: so
             arch: x64
             
           # Linux ARM64 (Raspberry Pi, Server AWS Graviton, ecc.)
           - os: ubuntu-24.04-arm
-            dart_os: Linux
+            dart_os: linux
             ext: so
             arch: arm64
           
           # macOS Apple Silicon (Mac M1/M2/M3 - arm64)
           - os: macos-14
-            dart_os: macOS
+            dart_os: macos
             ext: dylib
             arch: arm64
             
           # macOS Intel (Mac storici - x64)
           - os: macos-13
-            dart_os: macOS
+            dart_os: macos
             ext: dylib
             arch: x64
             
           # Windows x64 (PC Windows Intel/AMD standard)
           - os: windows-latest
-            dart_os: Windows
+            dart_os: windows
             ext: dll
             arch: x64
             msystem: MINGW64
