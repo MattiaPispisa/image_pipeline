@@ -1,0 +1,7 @@
+[ ] web, serve build + arteffatto nella release. Serve un setup per rannare in una app web la libreria, serve un setup per i test web
+[ ] serve la gestione degli isolate/workers
+[ ] action for test: lib tests for dart, web_integration to ensure native
+[ ] API documentation
+[ ] benchmark, benchmarks vs other libries
+[ ] README to esplain how the build works, packages used for each platform, how to add new operations, how to use the library
+[ ] Nella ci devono essere molte più architetture, le ci di deployment di github forse è meglio se referenzia dei file dart con del codice

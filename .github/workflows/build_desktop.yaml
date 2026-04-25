@@ -122,3 +122,32 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.${{ matrix.ext }}
+
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout photon repository
+        uses: actions/checkout@v4
+        with:
+          repository: silvia-odwyer/photon
+          path: photon
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build photon WASM
+        working-directory: ./photon
+        run: wasm-pack build --target web --release
+
+      - name: Package photon artifact
+        run: |
+          cd photon/pkg
+          zip -r ../../photon_web.zip .
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: photon_web.zip
