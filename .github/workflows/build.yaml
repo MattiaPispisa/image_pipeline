@@ -126,28 +126,32 @@ jobs:
   build-web:
     runs-on: ubuntu-latest
     steps:
+      # 1. Scarica il codice del TUO repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Checkout photon repository
-        uses: actions/checkout@v4
-        with:
-          repository: silvia-odwyer/photon
-          path: photon
-
+      # 2. Installa wasm-pack (il tool per compilare Rust in Wasm)
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Build photon WASM
-        working-directory: ./photon
+      # 3. Compila il tuo wrapper Rust (che contiene photon come dipendenza)
+      # Nota: Assicurati di aver creato la cartella "native_web" nel tuo repo
+      - name: Build custom WASM Bridge
+        working-directory: ./native_web
         run: wasm-pack build --target web --release
 
-      - name: Package photon artifact
+      # 4. Prepara il pacchetto .zip contenente il glue-code JS e il binario .wasm
+      - name: Package WASM artifact
         run: |
-          cd photon/pkg
-          zip -r ../../photon_web.zip .
+          cd native_web/pkg
+          # Comprime tutto il contenuto della cartella pkg. 
+          # Il file zip viene salvato nella root del progetto.
+          zip -r ../../engine_web.zip .
 
+      # 5. Carica il file zip nella Release di GitHub
+      # Nota: Questo step verrà eseguito solo se la CI è stata attivata dalla creazione di un Tag/Release
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: photon_web.zip
+          files: engine_web.zip
