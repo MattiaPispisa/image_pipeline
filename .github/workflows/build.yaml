@@ -126,32 +126,46 @@ jobs:
   build-web:
     runs-on: ubuntu-latest
     steps:
-      # 1. Scarica il codice del TUO repository
+      # 1. Checkout del tuo repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Installa wasm-pack (il tool per compilare Rust in Wasm)
+      # 2. Checkout del repository ufficiale di Photon
+      - name: Checkout photon repository
+        uses: actions/checkout@v4
+        with:
+          repository: silvia-odwyer/photon
+          path: photon
+
+      # 3. Installa wasm-pack
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      # 3. Compila il tuo wrapper Rust (che contiene photon come dipendenza)
-      # Nota: Assicurati di aver creato la cartella "native_web" nel tuo repo
-      - name: Build custom WASM Bridge
-        working-directory: ./native_web
+      # 4. Compila Photon WASM
+      # ATTENZIONE: La directory corretta in cui lanciare il comando è "photon/crate", 
+      # non la root del repository photon.
+      - name: Build photon WASM
+        working-directory: ./photon/crate
         run: wasm-pack build --target web --release
 
-      # 4. Prepara il pacchetto .zip contenente il glue-code JS e il binario .wasm
-      - name: Package WASM artifact
+      # 5. Prepara l'artefatto (zippa il contenuto della cartella pkg)
+      - name: Package photon artifact
         run: |
-          cd native_web/pkg
-          # Comprime tutto il contenuto della cartella pkg. 
-          # Il file zip viene salvato nella root del progetto.
-          zip -r ../../engine_web.zip .
+          cd photon/crate/pkg
+          # Crea il file zip tre livelli più in su, nella root del tuo progetto
+          zip -r ../../../photon_web.zip .
 
-      # 5. Carica il file zip nella Release di GitHub
-      # Nota: Questo step verrà eseguito solo se la CI è stata attivata dalla creazione di un Tag/Release
+      # 6. (Opzionale) Salva lo zip come artefatto della singola run su GitHub Actions
+      # Utile per scaricarlo senza dover creare una vera e propria Release
+      - name: Upload artifact to Action
+        uses: actions/upload-artifact@v4
+        with:
+          name: photon-web-build
+          path: photon_web.zip
+
+      # 7. Carica lo zip nella Release di GitHub (solo se è un tag/release)
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: engine_web.zip
+          files: photon_web.zip
