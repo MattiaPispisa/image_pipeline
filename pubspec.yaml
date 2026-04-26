@@ -15,12 +15,12 @@ dependencies:
   http: ^1.0.0
   native_toolchain_c: 
   ffi: ^2.1.0
+  path: 
 
 dev_dependencies:
   coverage: ^1.15.0
   ffigen: ^10.0.0
   mocktail: ^1.0.5
-  path: 
   test: 
   archive:
   yaml:

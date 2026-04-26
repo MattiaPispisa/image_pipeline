@@ -4,6 +4,7 @@ import 'package:hooks/hooks.dart';
 import 'package:code_assets/code_assets.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:native_toolchain_c/native_toolchain_c.dart' as native_toolchain;
+import 'package:path/path.dart' as path;
 
 const _repoOwner =
     'MattiaPispisa'; // TODO(MattiaPispisa): can be derived from pubspec
@@ -54,7 +55,9 @@ Future<void> _mobileBuild({
       name: input.packageName,
       assetName: assetName,
       sources: [
-        input.packageRoot.resolve('native/io/mobile/transform.c').toFilePath(),
+        input.packageRoot
+            .resolve(path.joinAll(['native', 'io', 'mobile', 'transform.c']))
+            .toFilePath(),
       ],
       libraries: ['m'],
     );
@@ -204,11 +207,22 @@ Future<Uri> _fallbackLocalBuild({
 }) async {
   final outDir = input.outputDirectory.toFilePath();
   final nativeSrcDir = input.packageRoot
-      .resolve('native/io/desktop')
+      .resolve(path.joinAll(['native', 'io', 'desktop']))
       .toFilePath();
 
-  output.dependencies.add(input.packageRoot.resolve('native/io/desktop/'));
-  output.dependencies.add(input.packageRoot.resolve('native/transform.h'));
+  output.dependencies.add(
+    input.packageRoot.resolve(
+      path.joinAll(['native', 'io', 'desktop', 'transform.c']),
+    ),
+  );
+  output.dependencies.add(
+    input.packageRoot.resolve(
+      path.joinAll(['native', 'io', 'desktop', 'CMakeLists.txt']),
+    ),
+  );
+  output.dependencies.add(
+    input.packageRoot.resolve(path.joinAll(['native', 'transform.h'])),
+  );
 
   logger.info('Running CMake configuration...');
   final cmakeConfig = await Process.run('cmake', [
@@ -237,7 +251,6 @@ Future<Uri> _fallbackLocalBuild({
     throw Exception('CMake build failed:\n${cmakeBuild.stderr}');
   }
 
-  output.dependencies.add(input.packageRoot.resolve('native/io/'));
   final compiledFileName = '$_cmakeFileName.$ext';
   final compiledLibUri = input.outputDirectory.resolve(compiledFileName);
 
