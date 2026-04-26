@@ -25,7 +25,7 @@ void main(List<String> args) async {
         logger: logger,
         assetName: _ioCodeAssetName,
       );
-    } else {
+    } else if (input.isDesktop) {
       await _desktopBuild(input: input, output: output, logger: logger);
       logger.info('Building secondary mobile asset for desktop testing...');
       await _mobileBuild(
@@ -268,6 +268,11 @@ void _addAssetToOutput(
 extension _BuildInputHelper on BuildInput {
   bool get isMobile =>
       config.code.targetOS == OS.android || config.code.targetOS == OS.iOS;
+
+  bool get isDesktop =>
+      config.code.targetOS == OS.macOS ||
+      config.code.targetOS == OS.linux ||
+      config.code.targetOS == OS.windows;
 }
 
 class _PrintHandler extends EnLoggerHandler {

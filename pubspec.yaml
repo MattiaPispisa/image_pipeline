@@ -1,6 +1,6 @@
 name: image_pipeline
 description: A Dart package for image processing.
-version: 0.0.1
+version: 0.0.1-alpha.11
 homepage: https://mattiapispisa.github.io/
 repository: https://github.com/MattiaPispisa/image_pipeline
 topics: [image, processing, pipeline]
@@ -23,10 +23,11 @@ dev_dependencies:
   path: 
   test: 
   archive:
-  
+  yaml:
+
 ffigen:
-  name: VipsBindings
-  description: Bindings per il wrapper di libvips
+  name: TransformerBindings
+  description: Bindings per trasformare le immagini
   output: 'lib/src/native/io/io_transformer_bindings_generated.dart'
 
   ffi-native:

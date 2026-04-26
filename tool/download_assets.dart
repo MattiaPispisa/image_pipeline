@@ -2,19 +2,13 @@
 import 'dart:io';
 import 'package:archive/archive_io.dart';
 import 'package:path/path.dart' as path;
+import 'package:yaml/yaml.dart' as yaml;
 
 const String repoOwner = 'MattiaPispisa';
 const String repoName = 'image_pipeline';
 
 Future<void> main(List<String> args) async {
-  if (args.isEmpty) {
-    print('❌ Errore: Nessuna versione specificata.');
-    print('👉 Uso corretto: dart tool/download_assets.dart <versione>');
-    print('💡 Esempio: dart tool/download_assets.dart v1.0.0');
-    exit(1);
-  }
-
-  final version = args.first;
+  final version = args.isEmpty ? _pubspecVersion() : args.first;
   print('🚀 Inizio setup asset per la versione $version...\n');
 
   final tempDir = Directory.systemTemp.createTempSync('image_pipeline_assets_');
@@ -35,6 +29,19 @@ Future<void> main(List<String> args) async {
       tempDir.deleteSync(recursive: true);
     }
   }
+}
+
+String _pubspecVersion() {
+  final pubspecFile = File('pubspec.yaml');
+  if (!pubspecFile.existsSync()) {
+    throw Exception("File pubspec.yaml non trovato nella root.");
+  }
+
+  final doc = yaml.loadYaml(pubspecFile.readAsStringSync());
+  final rawVersion = doc['version'] as String;
+
+  final cleanVersion = rawVersion.split('+').first;
+  return 'v$cleanVersion';
 }
 
 Future<void> _setupWebAssets(String version, Directory tempDir) async {

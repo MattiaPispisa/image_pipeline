@@ -40,26 +40,48 @@ jobs:
       - name: 📦 Install Dart dependencies
         run: dart pub get
 
-      # Questo comando esegue automaticamente i build hook (build.dart) 
-      # prima di lanciare i test, poiché i Native Assets sono richiesti dai test.
-      - name: 🧪 Run Tests & Collect Coverage
-        run: dart test --coverage=coverage
+      - name: 📥 Download Assets
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          if [ -n "$TAG_NAME" ]; then
+            dart run tool/download_assets.dart "$TAG_NAME"
+          else
+            dart run tool/download_assets.dart
+          fi
 
-      # Conversione del formato coverage da JSON (Dart) a LCOV (Standard)
-      - name: 🔄 Format coverage to LCOV
+      - name: 🧬 Generate Mobile Test Bindings
+        run: dart run tool/generate_mob_test_bindings.dart
+
+      # 1. Esecuzione Test Ambiente Native (VM)
+      - name: 🧪 Run Native Tests (IO)
+        run: dart test --coverage=coverage_native
+
+      # 2. Esecuzione Test Ambiente Web (Chrome)
+      # Nota: --coverage genera i dati per il browser in un formato compatibile
+      - name: 🌐 Run Web Tests (Chrome)
+        run: dart test -p chrome --coverage=coverage_web
+
+      # 3. Conversione e Unione Coverage
+      # Formattiamo entrambi i report nella stessa cartella lcov
+      - name: 🔄 Format & Merge Coverage
         run: |
           dart pub global activate coverage
+          
+          # Formatta Native
           dart pub global run coverage:format_coverage \
-            --lcov \
-            --in=coverage \
-            --out=coverage/lcov.info \
-            --packages=.dart_tool/package_config.json \
-            --report-on=lib
+            --lcov --in=coverage_native --out=coverage/native.lcov \
+            --packages=.dart_tool/package_config.json --report-on=lib
+            
+          # Formatta Web
+          dart pub global run coverage:format_coverage \
+            --lcov --in=coverage_web --out=coverage/web.lcov \
+            --packages=.dart_tool/package_config.json --report-on=lib
 
-      # Caricamento su Codecov
+      # 4. Caricamento su Codecov
+      # Codecov di default carica tutti i file .lcov trovati nella cartella e li unisce
       - name: ☁️ Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: coverage/lcov.info
+          directory: coverage/
           fail_ci_if_error: true

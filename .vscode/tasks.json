@@ -56,7 +56,7 @@
             "id": "releaseTag",
             "type": "promptString",
             "description": "Inserisci il tag della release da scaricare",
-            "default": "v1.0.0"
+            "default": ""
         }
     ]
 }
