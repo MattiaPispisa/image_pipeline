@@ -117,38 +117,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Checkout del repository ufficiale di Photon (Fissato alla versione 0.3.3)
-      - name: Checkout photon repository
-        uses: actions/checkout@v4
-        with:
-          repository: silvia-odwyer/photon
-          ref: v0.3.3 # Checkout del tag specifico (se la build fallisce perché il tag si chiama diversamente, togli la 'v' e scrivi solo '0.3.3')
-          path: photon
+      # 2. Scarica il sorgente ufficiale di Photon (v0.3.3) dal registro Rust
+      # Bypassiamo GitHub per avere la garanzia assoluta della versione!
+      - name: Download photon crate
+        run: |
+          wget https://crates.io/api/v1/crates/photon-rs/0.3.3/download -O photon.tar.gz
+          tar -xzf photon.tar.gz
+          # Rinominiamo la cartella estratta per comodità
+          mv photon-rs-0.3.3 photon_crate
 
       # 3. Installa wasm-pack
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       # 4. Compila Photon WASM
+      # Ora il codice si trova direttamente in photon_crate (non c'è più la sottocartella /crate)
       - name: Build photon WASM
-        working-directory: ./photon/crate
+        working-directory: ./photon_crate
         run: wasm-pack build --target web --release
 
       # 5. Prepara l'artefatto (Creazione dello ZIP selettivo)
       - name: Package web artifact
         run: |
-          # Creiamo una cartella temporanea per preparare il pacchetto
           mkdir web_transformer_staging
           
           # 1. Copiamo i nostri file JS dal progetto
           cp native/web/transformer.js web_transformer_staging/
           cp native/web/transformer_worker.js web_transformer_staging/
           
-          # 2. Copiamo SOLO i due file di Photon richiesti (escludendo .json e .d.ts)
-          cp photon/crate/pkg/photon_rs.js web_transformer_staging/
-          cp photon/crate/pkg/photon_rs_bg.wasm web_transformer_staging/
+          # 2. Copiamo SOLO i due file generati di Photon
+          cp photon_crate/pkg/photon_rs.js web_transformer_staging/
+          cp photon_crate/pkg/photon_rs_bg.wasm web_transformer_staging/
           
-          # 3. Entriamo nella cartella temporanea e creiamo lo ZIP root
+          # 3. Creiamo lo ZIP finale
           cd web_transformer_staging
           zip -r ../web_transformer.zip ./*
 
