@@ -44,14 +44,6 @@ jobs:
             arch: x64
             msystem: MINGW64
             msys_prefix: mingw-w64-x86_64
-            
-          # Windows ARM64 (PC Windows con Snapdragon X Elite/Copilot+)
-          #- os: windows-latest
-          #  dart_os: Windows
-          #  ext: dll
-          #  arch: arm64
-          #  msystem: CLANGARM64
-          #  msys_prefix: mingw-w64-clang-aarch64
 
     runs-on: ${{ matrix.os }}
 
@@ -60,7 +52,6 @@ jobs:
         uses: actions/checkout@v4
 
       # --- 1. INSTALLAZIONE DIPENDENZE ---
-
       - name: Install Dependencies (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: |
@@ -76,10 +67,8 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         uses: msys2/setup-msys2@v2
         with:
-          # Inietta dinamicamente il sottosistema (MINGW64 o CLANGARM64)
           msystem: ${{ matrix.msystem }}
           update: true
-          # Scarica il toolchain e libvips specifici per l'architettura
           install: >-
             ${{ matrix.msys_prefix }}-cmake
             ${{ matrix.msys_prefix }}-pkgconf
@@ -87,7 +76,6 @@ jobs:
             ${{ matrix.msys_prefix }}-toolchain
 
       # --- 2. COMPILAZIONE ---
-
       - name: Build Library (Ubuntu / macOS)
         if: "!startsWith(matrix.os, 'windows')"
         run: |
@@ -106,7 +94,6 @@ jobs:
           cmake --build .
 
       # --- 3. RINOMINA E UPLOAD NELLA RELEASE ---
-
       - name: Rename compiled binary (Ubuntu / macOS)
         if: "!startsWith(matrix.os, 'windows')"
         run: |
@@ -130,11 +117,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Checkout del repository ufficiale di Photon
+      # 2. Checkout del repository ufficiale di Photon (Fissato alla versione 0.3.3)
       - name: Checkout photon repository
         uses: actions/checkout@v4
         with:
           repository: silvia-odwyer/photon
+          ref: v0.3.3 # Checkout del tag specifico (se la build fallisce perché il tag si chiama diversamente, togli la 'v' e scrivi solo '0.3.3')
           path: photon
 
       # 3. Installa wasm-pack
@@ -142,30 +130,38 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       # 4. Compila Photon WASM
-      # ATTENZIONE: La directory corretta in cui lanciare il comando è "photon/crate", 
-      # non la root del repository photon.
       - name: Build photon WASM
         working-directory: ./photon/crate
         run: wasm-pack build --target web --release
 
-      # 5. Prepara l'artefatto (zippa il contenuto della cartella pkg)
-      - name: Package photon artifact
+      # 5. Prepara l'artefatto (Creazione dello ZIP selettivo)
+      - name: Package web artifact
         run: |
-          cd photon/crate/pkg
-          # Crea il file zip tre livelli più in su, nella root del tuo progetto
-          zip -r ../../../photon_web.zip .
+          # Creiamo una cartella temporanea per preparare il pacchetto
+          mkdir web_transformer_staging
+          
+          # 1. Copiamo i nostri file JS dal progetto
+          cp native/web/transformer.js web_transformer_staging/
+          cp native/web/transformer_worker.js web_transformer_staging/
+          
+          # 2. Copiamo SOLO i due file di Photon richiesti (escludendo .json e .d.ts)
+          cp photon/crate/pkg/photon_rs.js web_transformer_staging/
+          cp photon/crate/pkg/photon_rs_bg.wasm web_transformer_staging/
+          
+          # 3. Entriamo nella cartella temporanea e creiamo lo ZIP root
+          cd web_transformer_staging
+          zip -r ../web_transformer.zip ./*
 
-      # 6. (Opzionale) Salva lo zip come artefatto della singola run su GitHub Actions
-      # Utile per scaricarlo senza dover creare una vera e propria Release
+      # 6. Salva lo zip come artefatto della singola run su GitHub Actions
       - name: Upload artifact to Action
         uses: actions/upload-artifact@v4
         with:
-          name: photon-web-build
-          path: photon_web.zip
+          name: web_transformer
+          path: web_transformer.zip
 
       # 7. Carica lo zip nella Release di GitHub (solo se è un tag/release)
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: photon_web.zip
+          files: web_transformer.zip
