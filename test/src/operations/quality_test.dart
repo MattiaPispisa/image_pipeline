@@ -1,3 +1,4 @@
+@TestOn('vm')
 import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:image_pipeline/src/operations/quality.dart';
