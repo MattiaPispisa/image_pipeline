@@ -1,0 +1,65 @@
+name: Build & Test CI
+
+on:
+  # 1. Trigger al push sul branch main
+  push:
+    branches: [ main ]
+  
+  # 2. Trigger all'apertura/aggiornamento di una Pull Request verso main
+  pull_request:
+    branches: [ main ]
+
+  # 3. Trigger alla pubblicazione di una Release
+  release:
+    types: [published]
+
+  # Permette anche l'avvio manuale dalla scheda Actions di GitHub
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necessario per alcune analisi di coverage
+
+      # Fondamentale per i tuoi build hook desktop che usano libvips
+      - name: 🛠️ Install system dependencies (libvips)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake pkg-config libvips-dev
+
+      - name: 🎯 Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: 📦 Install Dart dependencies
+        run: dart pub get
+
+      # Questo comando esegue automaticamente i build hook (build.dart) 
+      # prima di lanciare i test, poiché i Native Assets sono richiesti dai test.
+      - name: 🧪 Run Tests & Collect Coverage
+        run: dart test --coverage=coverage
+
+      # Conversione del formato coverage da JSON (Dart) a LCOV (Standard)
+      - name: 🔄 Format coverage to LCOV
+        run: |
+          dart pub global activate coverage
+          dart pub global run coverage:format_coverage \
+            --lcov \
+            --in=coverage \
+            --out=coverage/lcov.info \
+            --packages=.dart_tool/package_config.json \
+            --report-on=lib
+
+      # Caricamento su Codecov
+      - name: ☁️ Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: coverage/lcov.info
+          fail_ci_if_error: true

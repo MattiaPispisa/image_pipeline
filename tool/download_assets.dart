@@ -1,7 +1,7 @@
 // tool/download_assets.dart
 import 'dart:io';
 import 'package:archive/archive_io.dart';
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' as path;
 
 const String repoOwner = 'MattiaPispisa';
 const String repoName = 'image_pipeline';
@@ -41,13 +41,13 @@ Future<void> _setupWebAssets(String version, Directory tempDir) async {
   final webAsset = 'web_transformer.zip';
   final downloadUrl =
       'https://github.com/$repoOwner/$repoName/releases/download/$version/$webAsset';
-  final tempZipPath = p.join(tempDir.path, webAsset);
+  final tempZipPath = path.join(tempDir.path, webAsset);
 
   print('🌐 [WEB] Download in corso: $webAsset');
   await _downloadFile(downloadUrl, tempZipPath);
 
   // Calcola il percorso di destinazione nel progetto
-  final targetWebDir = Directory(p.join('test', 'src', 'native', 'web'));
+  final targetWebDir = Directory(path.join('test', 'src', 'native', 'web'));
 
   // Crea la cartella se non esiste
   if (!targetWebDir.existsSync()) {
