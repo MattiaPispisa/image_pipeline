@@ -207,6 +207,9 @@ Future<Uri> _fallbackLocalBuild({
       .resolve('native/io/desktop')
       .toFilePath();
 
+  output.dependencies.add(input.packageRoot.resolve('native/io/desktop/'));
+  output.dependencies.add(input.packageRoot.resolve('native/transform.h'));
+
   logger.info('Running CMake configuration...');
   final cmakeConfig = await Process.run('cmake', [
     '-B',
