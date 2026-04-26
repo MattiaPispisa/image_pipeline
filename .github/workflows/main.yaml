@@ -40,6 +40,9 @@ jobs:
       - name: 📦 Install Dart dependencies
         run: dart pub get
 
+      - name: 🧹 Clean Native Assets Cache
+        run: rm -rf .dart_tool/native_assets_builder
+
       - name: 📥 Download Assets
         run: |
           TAG_NAME="${{ github.event.release.tag_name }}"
