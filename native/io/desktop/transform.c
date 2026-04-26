@@ -39,6 +39,8 @@ uint8_t* transform_image(const uint8_t* input_buffer, size_t input_length, const
                 scale = scale_y;
             }
 
+            if (scale > 1.0) scale = 1.0;
+
             if (scale != 1.0) {
                 VipsImage *resized = NULL;
                 if (vips_resize(image, &resized, scale, NULL) == 0) {

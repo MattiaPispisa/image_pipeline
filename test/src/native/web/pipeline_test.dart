@@ -10,9 +10,13 @@ import 'package:web/web.dart' as web;
 import 'dart:js_interop';
 import 'dart:typed_data';
 
+const _assetsBasePath = '../../../../assets/sample/';
+
 // Funzione di utilità per scaricare l'immagine di test tramite fetch
-Future<Uint8List> loadTestImage() async {
-  final response = await web.window.fetch('./sample.jpeg'.toJS).toDart;
+Future<Uint8List> loadAsset() async {
+  final response = await web.window
+      .fetch('$_assetsBasePath/sample.jpeg'.toJS)
+      .toDart;
   final byteBuffer = await (await response.arrayBuffer().toDart).toDart;
 
   // Creiamo la "vista" Uint8List a partire dal buffer
@@ -53,7 +57,7 @@ void main() {
       // Usiamo la modalità sync per evitare problemi coi worker nel test runner
       final pipeline = ImageTransformer(WebPipeline());
 
-      final inputBytes = await loadTestImage();
+      final inputBytes = await loadAsset();
       print('3. Immagine caricata. Lunghezza byte: ${inputBytes.length}');
 
       final resultBytes = await pipeline.transform(inputBytes, [

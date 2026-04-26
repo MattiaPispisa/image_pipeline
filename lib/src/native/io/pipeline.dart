@@ -2,8 +2,7 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart' as ffi;
-import 'package:image_pipeline/src/native/io/io_transformer_bindings_generated.dart'
-    as bindings;
+import 'package:image_pipeline/src/native/io/io_bindings.dart' as bindings;
 import 'package:image_pipeline/src/pipeline.dart' as pipeline;
 import 'package:image_pipeline/src/engine.dart';
 
@@ -29,12 +28,12 @@ class IoPipeline implements pipeline.Pipeline {
     final outLength = ffi.calloc<Size>();
 
     try {
-      final resultTr = bindings.transform_image(
-        operationTr,
-        input.length,
-        operationsTr,
-        _operations.length,
-        outLength,
+      final resultTr = bindings.IoBindings.instance.transformImage(
+        inputBuffer: operationTr,
+        inputLength: input.length,
+        opsArray: operationsTr,
+        opsCount: _operations.length,
+        outLength: outLength,
       );
 
       if (resultTr == nullptr) {
@@ -44,7 +43,7 @@ class IoPipeline implements pipeline.Pipeline {
       final outList = resultTr.asTypedList(outLength.value);
       final outUint8List = Uint8List.fromList(outList);
 
-      bindings.free_image_buffer(resultTr);
+      bindings.IoBindings.instance.freeImageBuffer(resultTr);
 
       return outUint8List;
     } finally {

@@ -22,6 +22,7 @@ dev_dependencies:
   mocktail: ^1.0.5
   path: 
   test: 
+  archive:
   
 ffigen:
   name: VipsBindings

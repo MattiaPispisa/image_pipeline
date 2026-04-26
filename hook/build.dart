@@ -19,9 +19,21 @@ void main(List<String> args) async {
     final logger = EnLogger(handlers: [_PrintHandler()]);
 
     if (input.isMobile) {
-      await _mobileBuild(input: input, output: output, logger: logger);
+      await _mobileBuild(
+        input: input,
+        output: output,
+        logger: logger,
+        assetName: _ioCodeAssetName,
+      );
     } else {
       await _desktopBuild(input: input, output: output, logger: logger);
+      logger.info('Building secondary mobile asset for desktop testing...');
+      await _mobileBuild(
+        input: input,
+        output: output,
+        logger: logger,
+        assetName: '${_ioCodeAssetName}_mob_test',
+      );
     }
   });
 }
@@ -30,15 +42,17 @@ Future<void> _mobileBuild({
   required EnLogger logger,
   required BuildInput input,
   required BuildOutputBuilder output,
+  required String assetName,
 }) async {
   try {
     logger.info(
-      'Mobile target detected (${input.config.code.targetOS}). Starting local C compilation...',
+      'Mobile target detected (${input.config.code.targetOS}).'
+      ' Starting local C compilation (Asset: $assetName)...',
     );
 
     final builder = native_toolchain.CBuilder.library(
       name: input.packageName,
-      assetName: _ioCodeAssetName,
+      assetName: assetName,
       sources: [
         input.packageRoot.resolve('native/io/mobile/transform.c').toFilePath(),
       ],
@@ -48,7 +62,7 @@ Future<void> _mobileBuild({
     // CBuilder si occupa automaticamente di aggiungere l'asset a `output.assets.code`
     await builder.run(input: input, output: output);
 
-    logger.info('Mobile build completed successfully!');
+    logger.info('Mobile build ($assetName) completed successfully!');
   } catch (e, stackTrace) {
     logger.error(
       'Fatal error during mobile build execution: $e',

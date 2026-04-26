@@ -15,6 +15,10 @@ abstract class TransformerEngine {
     _instance = mock;
   }
 
+  /// Clears the mock instance for testing purposes.
+  static void clearMockInstanceForTesting() {
+    _instance = null;
+  }
 
   /// Ensures that the engine is initialized.
   /// This can be called multiple times safely.

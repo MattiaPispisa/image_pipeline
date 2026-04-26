@@ -1,0 +1,62 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "🏗️ Esegui Build Hook (Debug)",
+            "type": "shell",
+            "command": "dart",
+            "args": [
+                "run",
+                "hook/build.dart",
+                "--config",
+                ".dart_tool/hooks_runner/image_pipeline/cf32afd5ca/input.json"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📥 Download Assets",
+            "type": "shell",
+            "command": "dart",
+            "args": [
+                "run",
+                "tool/download_assets.dart",
+                "${input:releaseTag}"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🧬 Genera Bindings Mobile Test",
+            "type": "shell",
+            "command": "dart",
+            "args": [
+                "run",
+                "tool/generate_mob_test_bindings.dart"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "releaseTag",
+            "type": "promptString",
+            "description": "Inserisci il tag della release da scaricare",
+            "default": "v1.0.0"
+        }
+    ]
+}
