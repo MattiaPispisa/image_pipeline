@@ -6,3 +6,4 @@
 [ ] benchmark, benchmarks vs other libries
 [ ] README to esplain how the build works, packages used for each platform, how to add new operations, how to use the library
 [ ] Nella ci devono essere molte più architetture, le ci di deployment di github forse è meglio se referenzia dei file dart con del codice
+[ ] migliorare builds per macOs

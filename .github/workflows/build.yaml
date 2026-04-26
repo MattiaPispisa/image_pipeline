@@ -1,4 +1,4 @@
-name: Build Desktop Artifacts (VIPS)
+name: Build Artifacts
 
 on:
   workflow_dispatch: 
