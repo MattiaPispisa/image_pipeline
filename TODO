@@ -1,8 +1,4 @@
-[ ] web, serve build + arteffatto nella release. Serve un setup per rannare in una app web la libreria, serve un setup per i test web
-[ ] serve la gestione degli isolate/workers
-[ ] action for test: 1. setup test downloading the assets for the specific version then: 2. lib tests for dart, lib test --chrome for web, web_integration to ensure native then upload everything to codecov
 [ ] API documentation
-[ ] CI test
 [ ] benchmark, benchmarks vs other libries
 [ ] README to esplain how the build works, packages used for each platform, how to add new operations, how to use the library
 [ ] Nella ci devono essere molte più architetture, le ci di deployment di github forse è meglio se referenzia dei file dart con del codice

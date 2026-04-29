@@ -4,21 +4,34 @@ import 'dart:typed_data';
 import 'package:image_pipeline/image_pipeline.dart';
 
 import 'package:image_pipeline/src/engine.dart';
+import 'package:image_pipeline/src/native/io/engine.dart';
 import 'package:test/test.dart';
 
 import '../load_assets.dart';
 
 void main() {
-  group('Native desktop transformation', () {
+  setUpAll(() async {
+    await TransformerEngine.instance.ensureInitialized();
+  });
+
+  tearDownAll(() async {
+    await TransformerEngine.instance.terminate();
+  });
+
+  for (final useLongLivedWorker in [false, true]) {
+    final modeName = useLongLivedWorker ? 'Long-Lived Isolate' : 'Short-Lived Isolate';
+    
+    group('Native desktop transformation ($modeName)', () {
     late List<Uint8List> originalImages;
 
     setUpAll(() async {
-      await TransformerEngine.instance.ensureInitialized();
+      if (useLongLivedWorker) {
+        await TransformerEngine.instance.io.spawnLongLivedWorker();
+      } else {
+        TransformerEngine.instance.io.useShortLivedWorker();
+      }
+      
       originalImages = loadIoAssets();
-    });
-
-    tearDownAll(() async {
-      await TransformerEngine.instance.terminate();
     });
 
     test(
@@ -86,4 +99,5 @@ void main() {
       },
     );
   });
+  }
 }

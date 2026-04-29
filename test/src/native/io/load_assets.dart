@@ -9,6 +9,7 @@ List<Uint8List> loadIoAssets() {
   return samplesDir
       .listSync()
       .whereType<File>()
+      .where((f) => !f.path.endsWith('.json'))
       .map((f) => f.readAsBytesSync())
       .toList();
 }
