@@ -24,6 +24,8 @@ dev_dependencies:
   test: 
   archive:
   yaml:
+  benchmark_harness: ^2.4.0
+  image: ^4.8.0
 
 ffigen:
   name: TransformerBindings

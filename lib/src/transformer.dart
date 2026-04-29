@@ -6,7 +6,25 @@ import 'package:image_pipeline/src/pipeline_factory.dart';
 
 import 'package:image_pipeline/src/engine.dart';
 
+/// The main entry point for processing images.
+///
+/// Use [ImageTransformer.native] to automatically select the optimal processing
+/// pipeline for the current platform (e.g., FFI for IO, WASM for Web).
+/// 
+/// Example usage:
+/// ```dart
+/// final transformer = ImageTransformer.native();
+/// final Uint8List result = await transformer.transform(
+///   imageBytes,
+///   [
+///     const ResizeOp(maxWidth: 500, maxHeight: 500),
+///     const QualityOp(quality: 80),
+///   ],
+/// );
+/// ```
 abstract class ImageTransformer {
+  /// Creates an [ImageTransformer] that automatically resolves the native
+  /// implementation for the current platform.
   factory ImageTransformer.native() => ImageTransformer(createPipeline);
   factory ImageTransformer(Pipeline Function() pipeline) =>
       _ImplImageTransformer(pipeline);
@@ -20,6 +38,12 @@ abstract class ImageTransformer {
   /// Shuts down the image processing library and frees native resources.
   static Future<void> terminate() => TransformerEngine.instance.terminate();
 
+  /// Transforms the [input] image bytes by sequentially applying the given [operations].
+  ///
+  /// The operations are bundled and executed in a single native pass when possible
+  /// for maximum performance.
+  /// 
+  /// Returns a [Future] that resolves to the processed image bytes.
   Future<Uint8List> transform(Uint8List input, List<ImageOperation> operations);
 }
 

@@ -8,6 +8,10 @@ import 'package:image_pipeline/src/native/io/worker.dart';
 
 TransformerEngine createTransformerEngine() => IoTransformerEngine();
 
+/// The native IO implementation of the [TransformerEngine].
+///
+/// This engine manages the native `libvips` C bindings and provides a worker
+/// pool (via isolates) to ensure image processing does not block the UI thread.
 class IoTransformerEngine extends TransformerEngine {
   bool _isInitialized = false;
   ImageWorker _worker = ShortLivedImageWorker();
@@ -60,12 +64,14 @@ class IoTransformerEngine extends TransformerEngine {
   }
 }
 
+/// Extension to access IO-specific features of the [TransformerEngine].
 extension TransformerEngineIoExtension on TransformerEngine {
-  /// Restituisce l'engine IO per configurare i Worker.
-  /// Lancia un'eccezione se eseguito su piattaforme non-IO.
+  /// Gets the IO-specific transformer engine to configure worker isolates.
+  ///
+  /// Throws an [UnsupportedError] if called on a non-IO platform (e.g., Web).
   IoTransformerEngine get io {
     if (this is! IoTransformerEngine) {
-      throw UnsupportedError('L\'estensione IO è disponibile solo su piattaforme native.');
+      throw UnsupportedError('The IO extension is only available on native platforms.');
     }
     return this as IoTransformerEngine;
   }
