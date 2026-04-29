@@ -19,7 +19,7 @@ void main() {
       'transform() should apply all operations and execute pipeline',
       () async {
         final pipeline = MockPipeline();
-        final transformer = ImageTransformer(pipeline);
+        final transformer = ImageTransformer(() => pipeline);
         final input = Uint8List.fromList([1, 2, 3]);
 
         when(() => pipeline.execute(any())).thenAnswer((_) async => input);

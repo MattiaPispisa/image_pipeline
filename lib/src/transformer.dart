@@ -7,8 +7,8 @@ import 'package:image_pipeline/src/pipeline_factory.dart';
 import 'package:image_pipeline/src/engine.dart';
 
 abstract class ImageTransformer {
-  factory ImageTransformer.native() => ImageTransformer(createPipeline());
-  factory ImageTransformer(Pipeline pipeline) =>
+  factory ImageTransformer.native() => ImageTransformer(createPipeline);
+  factory ImageTransformer(Pipeline Function() pipeline) =>
       _ImplImageTransformer(pipeline);
 
   /// Initializes the image processing library.
@@ -24,19 +24,20 @@ abstract class ImageTransformer {
 }
 
 class _ImplImageTransformer implements ImageTransformer {
-  _ImplImageTransformer(this._pipeline);
+  _ImplImageTransformer(this._pipelineFactory);
 
-  final Pipeline _pipeline;
+  final Pipeline Function() _pipelineFactory;
 
   @override
   Future<Uint8List> transform(
     Uint8List input,
     List<ImageOperation> operations,
   ) {
+    final pipeline = _pipelineFactory();
     for (final op in operations) {
-      op.apply(_pipeline);
+      op.apply(pipeline);
     }
 
-    return _pipeline.execute(input);
+    return pipeline.execute(input);
   }
 }

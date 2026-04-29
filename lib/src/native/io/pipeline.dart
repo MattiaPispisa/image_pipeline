@@ -19,8 +19,8 @@ class IoPipeline implements pipeline.Pipeline {
 
     // TODO(MattiaPispisa): isolate behavior
 
-    final operationTr = ffi.calloc<Uint8>(input.length);
-    operationTr.asTypedList(input.length).setAll(0, input);
+    final inputBuffer = ffi.calloc<Uint8>(input.length);
+    inputBuffer.asTypedList(input.length).setAll(0, input);
 
     final operationsTr = ffi.calloc<Int32>(_operations.length);
     operationsTr.asTypedList(_operations.length).setAll(0, _operations);
@@ -29,7 +29,7 @@ class IoPipeline implements pipeline.Pipeline {
 
     try {
       final resultTr = bindings.IoBindings.instance.transformImage(
-        inputBuffer: operationTr,
+        inputBuffer: inputBuffer,
         inputLength: input.length,
         opsArray: operationsTr,
         opsCount: _operations.length,
@@ -47,7 +47,7 @@ class IoPipeline implements pipeline.Pipeline {
 
       return outUint8List;
     } finally {
-      ffi.calloc.free(operationTr);
+      ffi.calloc.free(inputBuffer);
       ffi.calloc.free(operationsTr);
       ffi.calloc.free(outLength);
     }
