@@ -138,7 +138,14 @@ Future<void> _desktopBuild({
     throw UnsupportedError('Unsupported OS: $targetOS');
   }
 
-  final archName = targetArch == Architecture.arm64 ? 'arm64' : 'x64';
+  final archName = switch (targetArch) {
+    Architecture.x64 => 'x64',
+    Architecture.arm64 => 'arm64',
+    Architecture.ia32 => 'ia32',
+    Architecture.arm => 'arm',
+    Architecture.riscv64 => 'riscv64',
+    _ => targetArch.name,
+  };
 
   return (osName, ext, archName);
 }

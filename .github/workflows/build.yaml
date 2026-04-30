@@ -1,4 +1,4 @@
-name: Build Artifacts
+name: Build Desktop Artifacts (VIPS)
 
 on:
   workflow_dispatch: 
@@ -26,13 +26,13 @@ jobs:
             arch: arm64
           
           # macOS Apple Silicon (Mac M1/M2/M3 - arm64)
-          - os: macos-14
+          - os: macos-latest
             dart_os: macos
             ext: dylib
             arch: arm64
             
-          # macOS Intel (Mac storici - x64)
-          - os: macos-13
+          # macOS Intel (Mac storici - x64) - cross-compilato tramite Rosetta
+          - os: macos-latest
             dart_os: macos
             ext: dylib
             arch: x64
@@ -44,6 +44,14 @@ jobs:
             arch: x64
             msystem: MINGW64
             msys_prefix: mingw-w64-x86_64
+
+          # Windows ia32 (PC Windows 32-bit)
+          - os: windows-latest
+            dart_os: windows
+            ext: dll
+            arch: ia32
+            msystem: MINGW32
+            msys_prefix: mingw-w64-i686
 
     runs-on: ${{ matrix.os }}
 
@@ -61,7 +69,14 @@ jobs:
       - name: Install Dependencies (macOS)
         if: startsWith(matrix.os, 'macos')
         run: |
-          brew install cmake pkg-config vips
+          if [ "${{ matrix.arch }}" == "x64" ]; then
+            # Installa Homebrew e dipendenze x86_64 tramite Rosetta
+            arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            arch -x86_64 /usr/local/bin/brew install cmake pkg-config vips
+          else
+            # Installazione standard Homebrew per arm64
+            brew install cmake pkg-config vips
+          fi
 
       - name: Install Dependencies (Windows via MSYS2)
         if: startsWith(matrix.os, 'windows')
@@ -81,7 +96,16 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake ../native/io/desktop -DCMAKE_BUILD_TYPE=Release
+          
+          # Se siamo su macOS e vogliamo compilare per x64, forziamo l'ambiente
+          if [[ "${{ matrix.os }}" == *"macos"* ]] && [ "${{ matrix.arch }}" == "x64" ]; then
+            export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/local/opt/vips/lib/pkgconfig"
+            export PATH="/usr/local/bin:$PATH"
+            cmake ../native/io/desktop -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="x86_64"
+          else
+            cmake ../native/io/desktop -DCMAKE_BUILD_TYPE=Release
+          fi
+          
           make
 
       - name: Build Library (Windows)
