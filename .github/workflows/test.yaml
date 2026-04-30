@@ -1,33 +1,30 @@
-name: Build & Test CI
+name: test
 
 on:
-  # 1. Trigger al push sul branch main
   push:
     branches: [ main ]
-  
-  # 2. Trigger all'apertura/aggiornamento di una Pull Request verso main
   pull_request:
     branches: [ main ]
-
-  # 3. Trigger alla pubblicazione di una Release
-  release:
-    types: [published]
-
-  # Permette anche l'avvio manuale dalla scheda Actions di GitHub
   workflow_dispatch:
+  
+  workflow_run:
+    workflows: ["build"]
+    types:
+      - completed
 
 jobs:
-  build-and-test:
+  test:
+    # Only if build succeeds or non build workflow
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Necessario per alcune analisi di coverage
+          fetch-depth: 0
 
-      # Fondamentale per i tuoi build hook desktop che usano libvips
-      - name: 🛠️ Install system dependencies (libvips)
+      - name: 🛠️ Install desktop system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake pkg-config libvips-dev
@@ -41,45 +38,30 @@ jobs:
         run: dart pub get
 
       - name: 📥 Download Assets
-        run: |
-          TAG_NAME="${{ github.event.release.tag_name }}"
-          if [ -n "$TAG_NAME" ]; then
-            dart run tool/download_assets.dart "$TAG_NAME"
-          else
-            dart run tool/download_assets.dart
-          fi
+        run: dart run tool/download_assets.dart
 
       - name: 🧬 Generate Mobile Test Bindings
         run: dart run tool/generate_mob_test_bindings.dart
 
-      # 1. Esecuzione Test Ambiente Native (VM)
-      - name: 🧪 Run Native Tests (IO)
+      - name: 🧪 Run IO Tests
         run: dart test --coverage=coverage_native
 
-      # 2. Esecuzione Test Ambiente Web (Chrome)
-      # Nota: --coverage genera i dati per il browser in un formato compatibile
-      - name: 🌐 Run Web Tests (Chrome)
+      - name: 🌐 Run WEB Tests
         run: dart test -p chrome --coverage=coverage_web
 
-      # 3. Conversione e Unione Coverage
-      # Formattiamo entrambi i report nella stessa cartella lcov
       - name: 🔄 Format & Merge Coverage
         run: |
           dart pub global activate coverage
           
-          # Formatta Native
           dart pub global run coverage:format_coverage \
             --lcov --in=coverage_native --out=coverage/native.lcov \
             --packages=.dart_tool/package_config.json --report-on=lib
             
-          # Formatta Web
           dart pub global run coverage:format_coverage \
             --lcov --in=coverage_web --out=coverage/web.lcov \
             --packages=.dart_tool/package_config.json --report-on=lib
 
-      # 4. Caricamento su Codecov
-      # Codecov di default carica tutti i file .lcov trovati nella cartella e li unisce
-      - name: ☁️ Upload coverage to Codecov
+      - name: ⬆ Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

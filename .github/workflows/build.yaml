@@ -1,4 +1,4 @@
-name: Build Desktop Artifacts (VIPS)
+name: build
 
 on:
   workflow_dispatch: 
@@ -13,31 +13,26 @@ jobs:
     strategy:
       matrix:
         include:
-          # Linux x64 (PC e Server standard)
           - os: ubuntu-latest
             dart_os: linux
             ext: so
             arch: x64
             
-          # Linux ARM64 (Raspberry Pi, Server AWS Graviton, ecc.)
           - os: ubuntu-24.04-arm
             dart_os: linux
             ext: so
             arch: arm64
           
-          # macOS Apple Silicon (Mac M1/M2/M3 - arm64)
           - os: macos-latest
             dart_os: macos
             ext: dylib
             arch: arm64
             
-          # macOS Intel (Mac storici - x64) - cross-compilato tramite Rosetta
           - os: macos-latest
             dart_os: macos
             ext: dylib
             arch: x64
             
-          # Windows x64 (PC Windows Intel/AMD standard)
           - os: windows-latest
             dart_os: windows
             ext: dll
@@ -48,17 +43,16 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      # --- 1. INSTALLAZIONE DIPENDENZE ---
-      - name: Install Dependencies (Ubuntu)
+      - name: 📦 Install Dependencies (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake pkg-config libvips-dev
 
-      - name: Install Dependencies (macOS)
+      - name: 📦 Install Dependencies (macOS)
         if: startsWith(matrix.os, 'macos')
         run: |
           if [ "${{ matrix.arch }}" == "x64" ]; then
@@ -70,7 +64,7 @@ jobs:
             brew install cmake pkg-config vips
           fi
 
-      - name: Install Dependencies (Windows via MSYS2)
+      - name: 📦 Install Dependencies (Windows via MSYS2)
         if: startsWith(matrix.os, 'windows')
         uses: msys2/setup-msys2@v2
         with:
@@ -82,8 +76,7 @@ jobs:
             ${{ matrix.msys_prefix }}-libvips
             ${{ matrix.msys_prefix }}-toolchain
 
-      # --- 2. COMPILAZIONE ---
-      - name: Build Library (Ubuntu / macOS)
+      - name: 🛠️ Build Library (Ubuntu / macOS)
         if: "!startsWith(matrix.os, 'windows')"
         run: |
           mkdir build
@@ -100,7 +93,7 @@ jobs:
           
           make
 
-      - name: Build Library (Windows)
+      - name: 🛠️ Build Library (Windows)
         if: startsWith(matrix.os, 'windows')
         shell: msys2 {0} 
         run: |
@@ -109,19 +102,18 @@ jobs:
           cmake ../native/io/desktop -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
           cmake --build .
 
-      # --- 3. RINOMINA E UPLOAD NELLA RELEASE ---
-      - name: Rename compiled binary (Ubuntu / macOS)
+      - name: 🏷️ Rename compiled binary (Ubuntu / macOS)
         if: "!startsWith(matrix.os, 'windows')"
         run: |
           mv build/*io_desktop_transformer*.${{ matrix.ext }} io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.${{ matrix.ext }}
 
-      - name: Rename compiled binary (Windows)
+      - name: 🏷️ Rename compiled binary (Windows)
         if: startsWith(matrix.os, 'windows')
         shell: msys2 {0}
         run: |
           mv build/*io_desktop_transformer*.${{ matrix.ext }} io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.${{ matrix.ext }}
 
-      - name: Upload to GitHub Release
+      - name: 🚀 Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.${{ matrix.ext }}
@@ -129,54 +121,43 @@ jobs:
   build-web:
     runs-on: ubuntu-latest
     steps:
-      # 1. Checkout del tuo repository
-      - name: Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Checkout del repository ufficiale di Photon (fissato al commit esatto della v0.3.3)
-      - name: Checkout photon repository
+      - name: 📥 Checkout photon repository
         uses: actions/checkout@v4
         with:
           repository: silvia-odwyer/photon
           ref: d15af4c4ee746b316fa64ccf0c9ab9972e708aa0
           path: photon
 
-      # 3. Installa wasm-pack
-      - name: Install wasm-pack
+      - name: 📦 Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      # 4. Compila Photon WASM
-      # Poiché abbiamo clonato l'intera repo di GitHub, compiliamo dentro photon/crate
-      - name: Build photon WASM
+      - name: 🛠️ Build photon WASM
         working-directory: ./photon/crate
         run: wasm-pack build --target web --release
 
-      # 5. Prepara l'artefatto (Creazione dello ZIP selettivo)
-      - name: Package web artifact
+      - name: 🏷️ Package web artifact
         run: |
           mkdir web_transformer_staging
           
-          # 1. Copiamo i nostri file JS dal progetto
           cp native/web/transformer.js web_transformer_staging/
           cp native/web/transformer_worker.js web_transformer_staging/
           
-          # 2. Copiamo SOLO i due file di Photon richiesti (escludendo .json e .d.ts)
           cp photon/crate/pkg/photon_rs.js web_transformer_staging/
           cp photon/crate/pkg/photon_rs_bg.wasm web_transformer_staging/
           
-          # 3. Entriamo nella cartella temporanea e creiamo lo ZIP root
           cd web_transformer_staging
           zip -r ../web_transformer.zip ./*
-
-      # 6. Salva lo zip come artefatto della singola run su GitHub Actions
+          
       - name: Upload artifact to Action
         uses: actions/upload-artifact@v4
         with:
           name: web_transformer
           path: web_transformer.zip
 
-      # 7. Carica lo zip nella Release di GitHub (solo se è un tag/release)
-      - name: Upload to GitHub Release
+      - name: 🚀 Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
