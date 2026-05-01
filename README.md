@@ -1,5 +1,12 @@
 # Image Pipeline
 
+[![package badge][package_badge]][pub_link]
+[![pub points][pub_points_badge]][pub_link]
+[![pub likes][pub_likes_badge]][pub_link]
+[![codecov][codecov_badge]][codecov_link]
+[![license][license_badge]][license_link]
+[![pub publisher][pub_publisher_badge]][pub_publisher_link]
+
 A cross-platform image processing library for Dart and Flutter.
 
 **Image Pipeline** leverages native code to process images. Under the hood, it abstracts and delegates operations to libraries specifically chosen for each platform:
@@ -190,3 +197,14 @@ Modify the underlying implementation to support the new operation. All the nativ
 ### Step 4: Add Tests
 
 Finally, write automated tests in `test/src/native/io/` and `test/src/native/web/` to ensure your new operation is completely isomorphic across platforms!
+
+[license_badge]: https://img.shields.io/badge/license-BSD--3--Clause-blue.svg
+[license_link]: https://opensource.org/licenses/BSD-3-Clause
+[package_badge]: https://img.shields.io/pub/v/image_pipeline.svg
+[codecov_badge]: https://img.shields.io/codecov/c/github/MattiaPispisa/image_pipeline/main?logo=codecov
+[codecov_link]: https://app.codecov.io/gh/MattiaPispisa/image_pipeline
+[pub_points_badge]: https://img.shields.io/pub/points/image_pipeline
+[pub_link]: https://pub.dev/packages/image_pipeline
+[pub_publisher_badge]: https://img.shields.io/pub/publisher/image_pipeline
+[pub_publisher_link]: https://pub.dev/packages?q=publisher%3Amattiapispisa.it
+[pub_likes_badge]: https://img.shields.io/pub/likes/image_pipeline
