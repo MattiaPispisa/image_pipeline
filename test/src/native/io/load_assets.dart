@@ -1,5 +1,14 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:path/path.dart' as path;
+
+const _acceptedExtensions = [
+  '.jpeg',
+  '.jpg',
+  '.png',
+  '.heic',
+  '.webp',
+];
 
 /// loads all assets from the assets/sample folder
 List<Uint8List> loadIoAssets() {
@@ -10,7 +19,7 @@ List<Uint8List> loadIoAssets() {
   return samplesDir
       .listSync()
       .whereType<File>()
-      .where((f) => !f.path.endsWith('.json'))
+      .where((f) => _acceptedExtensions.contains(path.extension(f.path)))
       .map((f) => f.readAsBytesSync())
       .toList();
 }
