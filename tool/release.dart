@@ -10,7 +10,8 @@ Future<void> main(List<String> args) async {
   final version = getPubspec().releaseVersion;
 
   print(
-    '🚀 Starting release checks for version $version${isDryRun ? " (DRY RUN)" : ""}...\n',
+    '🚀 Starting release checks for version'
+    ' $version${isDryRun ? " (DRY RUN)" : ""}...\n',
   );
 
   try {
@@ -25,7 +26,7 @@ Future<void> main(List<String> args) async {
 
     if (!isDryRun) {
       print('\n🚀 Creating and pushing git tag $version...');
-      // await _createAndPushTag(version);
+      await _createAndPushTag(version);
     }
 
     print('\n✅ Release process completed successfully!');
