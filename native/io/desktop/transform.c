@@ -11,12 +11,11 @@ uint8_t* transform_image(const uint8_t* input_buffer, size_t input_length, const
 
     int export_quality = 75; // Default
 
-    // --- INTERPRETAZIONE DELL'ARRAY NUMERICO ---
     size_t i = 0;
     while (i < ops_count) {
         int32_t op_type = ops_array[i++];
 
-        // 1 = RESIZE (si aspetta max_w e max_h)
+        // Resize operation (expects max_w and max_h)
         if (op_type == 1 && i + 1 < ops_count) {
             int32_t max_w = ops_array[i++];
             int32_t max_h = ops_array[i++];
@@ -29,7 +28,7 @@ uint8_t* transform_image(const uint8_t* input_buffer, size_t input_length, const
             if (max_w > 0) scale_x = (double)max_w / in_width;
             if (max_h > 0) scale_y = (double)max_h / in_height;
 
-            // Logica "Fit Box" (prendiamo la scala minore tra le due, ignorando lo 0)
+            // Fit box logic: take the smaller scale factor, ignoring 0.
             double scale = 1.0;
             if (max_w > 0 && max_h > 0) {
                 scale = (scale_x < scale_y) ? scale_x : scale_y;
@@ -51,19 +50,17 @@ uint8_t* transform_image(const uint8_t* input_buffer, size_t input_length, const
                 }
             }
         } 
-        // 2 = SET QUALITY (si aspetta un parametro)
+        // Set quality operation (expects one parameter)
         else if (op_type == 2 && i < ops_count) {
             export_quality = ops_array[i++];
             if (export_quality < 0) export_quality = 0;
             if (export_quality > 100) export_quality = 100;
         } 
-        // Formato array non valido, interrompi lettura
         else {
             break; 
         }
     }
 
-    // --- ESPORTAZIONE ---
     char format_string[32];
     snprintf(format_string, sizeof(format_string), ".jpg[Q=%d]", export_quality);
 

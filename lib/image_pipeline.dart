@@ -13,5 +13,6 @@
 /// ```
 library;
 
+export 'src/exceptions.dart';
 export 'src/operations/operations.dart';
 export 'src/transformer.dart';

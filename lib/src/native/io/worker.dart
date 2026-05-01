@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart' as pkg_ffi;
 import 'package:image_pipeline/src/engine.dart';
+import 'package:image_pipeline/src/exceptions.dart';
 import 'package:image_pipeline/src/native/io/io_bindings.dart' as bindings;
 
 /// {@template image_worker}
@@ -125,7 +126,11 @@ final class LongLivedImageWorker implements ImageWorker {
         final result = await _performTransform(input, operations);
         sendPort.send((id, result));
       } catch (e) {
-        sendPort.send((id, Exception(e.toString())));
+        if (e is ImageTransformException) {
+          sendPort.send((id, e));
+        } else {
+          sendPort.send((id, ImageTransformerPlatformException(e.toString())));
+        }
       }
     });
   }
@@ -173,7 +178,7 @@ Future<Uint8List> _performTransform(
     );
 
     if (resultTr == ffi.nullptr) {
-      throw Exception('Failed to transform image');
+      throw const UnsupportedImageFormatException();
     }
 
     final outList = resultTr.asTypedList(outLength.value);

@@ -50,4 +50,3 @@ Future<void> _setupWebAssets(String version, Directory tempDir) async {
 
   print('✅ [WEB] Assets correctly positioned.');
 }
-

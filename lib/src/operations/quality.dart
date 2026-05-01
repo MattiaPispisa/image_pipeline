@@ -12,6 +12,8 @@ class QualityOp implements ImageOperation {
   const QualityOp({required this.quality});
 
   /// The target image quality (0-100).
+  ///
+  /// Defaults to 75.
   final int quality;
 
   @override

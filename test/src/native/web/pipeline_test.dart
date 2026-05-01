@@ -14,8 +14,8 @@ import 'package:web/web.dart' as web;
 import 'load_assets.dart';
 
 void main() {
-  group('WebPipeline Tests', () {
-    late List<Uint8List> originalImages;
+  group('WebPipeline Integration', () {
+    late WebAssets assets;
 
     setUpAll(() async {
       final script =
@@ -43,7 +43,7 @@ void main() {
       TransformerEngine.setMockInstanceForTesting(engine);
       await engine.ensureInitialized();
 
-      originalImages = await loadWebAssets();
+      assets = await loadWebAssets();
     });
 
     tearDownAll(() async {
@@ -51,9 +51,9 @@ void main() {
     });
 
     test(
-      'resize() and setQuality() run without errors on real device',
+      'resize() and setQuality() run without errors on supported formats',
       () async {
-        for (final originalBytes in originalImages) {
+        for (final originalBytes in assets.supported) {
           expect(
             await ImageTransformer.native().transform(originalBytes, const [
               ResizeOp(maxWidth: 100, maxHeight: 200),
@@ -65,8 +65,22 @@ void main() {
       },
     );
 
+    test(
+      'throws UnsupportedImageFormatException on unsupported formats',
+      () async {
+        for (final originalBytes in assets.unsupported) {
+          expect(
+            () => ImageTransformer.native().transform(originalBytes, const [
+              ResizeOp(maxWidth: 100, maxHeight: 200),
+            ]),
+            throwsA(isA<UnsupportedImageFormatException>()),
+          );
+        }
+      },
+    );
+
     test('Lowering quality reduces image size', () async {
-      for (final originalBytes in originalImages) {
+      for (final originalBytes in assets.supported) {
         final highQuality = await ImageTransformer.native().transform(
           originalBytes,
           [const QualityOp(quality: 90)],
@@ -80,8 +94,22 @@ void main() {
       }
     });
 
+    test('Sequential operations work correctly', () async {
+      for (final originalBytes in assets.supported) {
+        final transformer = ImageTransformer.native();
+        final result = await transformer.transform(
+          originalBytes,
+          [
+            const ResizeOp(maxWidth: 50, maxHeight: 50),
+            const QualityOp(quality: 50),
+          ],
+        );
+        expect(result, isA<Uint8List>());
+      }
+    });
+
     test('Downsizing image reduces image size', () async {
-      for (final originalBytes in originalImages) {
+      for (final originalBytes in assets.supported) {
         final originalResult = await ImageTransformer.native().transform(
           originalBytes,
           [],
@@ -98,7 +126,7 @@ void main() {
     test(
       'Providing a larger dimension does not upscale/change the image',
       () async {
-        for (final originalBytes in originalImages) {
+        for (final originalBytes in assets.supported) {
           final originalResult = await ImageTransformer.native().transform(
             originalBytes,
             [],

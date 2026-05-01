@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart' as ffi;
 import 'package:image_pipeline/src/engine.dart';
+import 'package:image_pipeline/src/exceptions.dart';
+import 'package:image_pipeline/src/native/exception.dart';
 import 'package:image_pipeline/src/native/io/io_bindings.dart';
 import 'package:image_pipeline/src/native/io/worker.dart';
 
@@ -57,7 +59,9 @@ class IoTransformerEngine extends TransformerEngine {
       final result = IoBindings.instance.initEngine(namePtr.cast<Char>());
 
       if (!result) {
-        throw Exception('Failed to initialize libvips');
+        throw ImageTransformException.fromNative(
+          NativeExceptionStrings.engineNotInitialized,
+        );
       }
 
       _isInitialized = true;

@@ -2,6 +2,7 @@ import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:image_pipeline/src/engine.dart';
+import 'package:image_pipeline/src/exceptions.dart';
 import 'package:image_pipeline/src/native/web/web_transformer_bindings.dart'
     as bindings;
 import 'package:image_pipeline/src/pipeline.dart' as pipeline;
@@ -32,7 +33,7 @@ class WebPipeline implements pipeline.Pipeline {
 
       return jsResult.toDart;
     } catch (e) {
-      throw Exception('Failed to transform image on Web: $e');
+      throw ImageTransformException.fromNative(e.toString());
     }
   }
 
