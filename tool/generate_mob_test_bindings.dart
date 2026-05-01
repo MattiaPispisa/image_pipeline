@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+import 'yaml.dart';
+
 void main() {
   final sourceFile = File(
     path.joinAll([
@@ -12,8 +14,7 @@ void main() {
       'src',
       'native',
       'io',
-      // TODO(MattiaPispisa): can be readed from pubspec.yaml
-      'io_transformer_bindings_generated.dart',
+      getPubspec().ffiGenOutputFileName,
     ]),
   );
 
@@ -41,7 +42,7 @@ void main() {
 
   print('🔄 Replacing assetId...');
   content = content.replaceAll(
-    "assetId: 'package:image_pipeline/io_transformer'",
+    "assetId: '${getPubspec().ffiGenAssetId}'",
     "assetId: 'package:image_pipeline/io_transformer_mob_test'",
   );
 

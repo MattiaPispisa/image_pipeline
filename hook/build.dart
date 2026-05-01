@@ -9,14 +9,11 @@ import 'package:http/http.dart' as http;
 import 'package:native_toolchain_c/native_toolchain_c.dart' as native_toolchain;
 import 'package:path/path.dart' as path;
 
-const _repoOwner =
-    'MattiaPispisa'; // TODO(MattiaPispisa): can be derived from pubspec
-const _repoName =
-    'image_pipeline'; // TODO(MattiaPispisa): can be derived from pubspec
+const _repoOwner = 'MattiaPispisa';
+const _repoName = 'image_pipeline';
 const _cmakeFileName = 'io_desktop_transformer';
 const _ioRemoteAssetFileName = 'io_transformer';
-const _ioCodeAssetName =
-    'io_transformer'; // TODO(MattiaPispisa): can be derived from pubspec
+const _ioCodeAssetName = 'io_transformer';
 
 void main(List<String> args) async {
   await build(args, (input, output) async {

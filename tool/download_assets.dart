@@ -3,13 +3,12 @@
 import 'dart:io';
 import 'package:archive/archive_io.dart' as archive;
 import 'package:path/path.dart' as path;
-import 'package:yaml/yaml.dart' as yaml;
 
-const String repoOwner = 'MattiaPispisa';
-const String repoName = 'image_pipeline';
+import 'github.dart';
+import 'yaml.dart';
 
 Future<void> main(List<String> args) async {
-  final version = args.isEmpty ? _pubspecVersion() : args.first;
+  final version = args.isEmpty ? getPubspec().releaseVersion : args.first;
   print('🚀 Starting setup assets for version $version...\n');
 
   final tempDir = Directory.systemTemp.createTempSync('image_pipeline_assets_');
@@ -29,27 +28,16 @@ Future<void> main(List<String> args) async {
   }
 }
 
-String _pubspecVersion() {
-  final pubspecFile = File('pubspec.yaml');
-  if (!pubspecFile.existsSync()) {
-    throw Exception('pubspec.yaml not found in the root.');
-  }
-
-  final doc = yaml.loadYaml(pubspecFile.readAsStringSync()) as yaml.YamlMap;
-  final rawVersion = doc['version'] as String;
-
-  final cleanVersion = rawVersion.split('+').first;
-  return 'v$cleanVersion';
-}
-
 Future<void> _setupWebAssets(String version, Directory tempDir) async {
   const webAsset = 'web_transformer.zip';
-  final downloadUrl =
-      'https://github.com/$repoOwner/$repoName/releases/download/$version/$webAsset';
+  final downloadUrl = gitHubReleaseAsset(
+    version: version,
+    asset: webAsset,
+  );
   final tempZipPath = path.join(tempDir.path, webAsset);
 
   print('🌐 [WEB] Downloading $webAsset');
-  await _downloadFile(downloadUrl, tempZipPath);
+  await downloadFile(downloadUrl, tempZipPath);
 
   final targetWebDir = Directory(path.join('test', 'src', 'native', 'web'));
 
@@ -63,28 +51,3 @@ Future<void> _setupWebAssets(String version, Directory tempDir) async {
   print('✅ [WEB] Assets correctly positioned.');
 }
 
-Future<void> _downloadFile(String url, String savePath) async {
-  final client = HttpClient();
-  try {
-    final request = await client.getUrl(Uri.parse(url));
-    final response = await request.close();
-
-    if (response.statusCode == 404) {
-      throw Exception(
-        'Asset not found (404).'
-        ' Check that the release tag and filename are correct.',
-      );
-    } else if (response.statusCode >= 400) {
-      throw Exception(
-        'HTTP Error ${response.statusCode} during download.',
-      );
-    }
-
-    final file = File(savePath);
-    final sink = file.openWrite();
-    await response.pipe(sink);
-    await sink.close();
-  } finally {
-    client.close();
-  }
-}

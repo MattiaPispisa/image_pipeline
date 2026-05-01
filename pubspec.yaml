@@ -1,6 +1,6 @@
 name: image_pipeline
 description: A Dart package for image processing.
-version: 0.0.1-alpha.15
+version: 0.0.1
 homepage: https://mattiapispisa.github.io/
 repository: https://github.com/MattiaPispisa/image_pipeline
 topics: [image, processing, pipeline]

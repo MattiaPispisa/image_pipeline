@@ -6,3 +6,4 @@
 [ ] CI tests (unit tests in CI)
 [ ] action for test: 1. setup test downloading the assets for the specific version then: 2. lib tests for dart, lib test --chrome for web, web_integration to ensure native then upload everything to codecov
 [ ] nel readme spiegare meglio tutte le build che faccio, il fatto che se non c'è online te la fa in locale e se c'è l'hai online usi le build più performanti
+[ ] script per assicurare di poter rilasciare: pana + check release github
