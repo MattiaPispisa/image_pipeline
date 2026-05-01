@@ -6,8 +6,12 @@ import 'github.dart';
 import 'yaml.dart';
 
 Future<void> main(List<String> args) async {
+  final isDryRun = args.contains('--dry-run');
   final version = getPubspec().releaseVersion;
-  print('🚀 Starting release checks for version $version...\n');
+
+  print(
+    '🚀 Starting release checks for version $version${isDryRun ? " (DRY RUN)" : ""}...\n',
+  );
 
   try {
     print('🔍 Checking pana score (this may take a minute)...');
@@ -16,12 +20,56 @@ Future<void> main(List<String> args) async {
     print('\n🔍 Checking GitHub release assets...');
     await _ensurePubspecVersionInGithubRelease(version);
 
-    print('\n✅ All checks passed! Ready for pub.dev release.');
-    print('Next step: dart pub publish');
+    print('\n🔍 Running pub publish${isDryRun ? " (dry run)" : ""}...');
+    await _publish(isDryRun);
+
+    if (!isDryRun) {
+      print('\n🚀 Creating and pushing git tag $version...');
+      // await _createAndPushTag(version);
+    }
+
+    print('\n✅ Release process completed successfully!');
   } catch (e) {
-    print('\n❌ Release check failed:');
+    print('\n❌ Release process failed:');
     print(e);
     exit(1);
+  }
+}
+
+Future<void> _publish(bool dryRun) async {
+  final args = ['pub', 'publish'];
+  if (dryRun) {
+    args.add('--dry-run');
+  }
+
+  final process = await Process.start(
+    'dart',
+    args,
+    mode: ProcessStartMode.inheritStdio,
+  );
+  final exitCode = await process.exitCode;
+
+  if (exitCode != 0) {
+    throw Exception('pub publish failed with exit code $exitCode');
+  }
+}
+
+Future<void> _createAndPushTag(String version) async {
+  // Check if tag already exists locally
+  final checkTag = await Process.run('git', ['tag', '-l', version]);
+  if ((checkTag.stdout as String).trim().isNotEmpty) {
+    print('⚠️ Tag $version already exists locally. Skipping tag creation.');
+  } else {
+    final tagResult = await Process.run('git', ['tag', version]);
+    if (tagResult.exitCode != 0) {
+      throw Exception('Failed to create git tag: ${tagResult.stderr}');
+    }
+  }
+
+  print('📤 Pushing tag to origin...');
+  final pushResult = await Process.run('git', ['push', 'origin', version]);
+  if (pushResult.exitCode != 0) {
+    throw Exception('Failed to push git tag: ${pushResult.stderr}');
   }
 }
 
