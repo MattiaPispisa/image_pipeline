@@ -198,6 +198,14 @@ Modify the underlying implementation to support the new operation. All the nativ
 
 Finally, write automated tests in `test/src/native/io/` and `test/src/native/web/` to ensure your new operation is completely isomorphic across platforms!
 
+---
+
+## Philosophy
+
+The core philosophy of **Image Pipeline** is to perform image operations as efficiently as possible by delegating them to high-performance native libraries. The project is designed with a robust, structured foundation to ensure that extending the library with new operations is simple and consistent across all platforms.
+
+While the current set of operations is intentionally limited to a few key functions, additional features and transformations will be introduced over time as the core system reaches full stability.
+
 [license_badge]: https://img.shields.io/badge/license-BSD--3--Clause-blue.svg
 [license_link]: https://opensource.org/licenses/BSD-3-Clause
 [package_badge]: https://img.shields.io/pub/v/image_pipeline.svg
