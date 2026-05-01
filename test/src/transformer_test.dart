@@ -1,11 +1,14 @@
 @TestOn('vm')
+library;
+
 import 'dart:typed_data';
-import 'package:test/test.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:image_pipeline/src/transformer.dart';
+
 import 'package:image_pipeline/src/engine.dart';
 import 'package:image_pipeline/src/operations/quality.dart';
 import 'package:image_pipeline/src/operations/resize.dart';
+import 'package:image_pipeline/src/transformer.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:test/test.dart';
 
 import 'mocks.dart';
 
@@ -43,36 +46,36 @@ void main() {
       () async {
         final mockEngine = MockTransformerEngine();
 
-        when(() => mockEngine.ensureInitialized()).thenAnswer((_) async {});
-        when(() => mockEngine.terminate()).thenAnswer((_) async {});
+        when(mockEngine.ensureInitialized).thenAnswer((_) async {});
+        when(mockEngine.terminate).thenAnswer((_) async {});
 
         TransformerEngine.setMockInstanceForTesting(mockEngine);
 
         await ImageTransformer.initialize();
-        verify(() => mockEngine.ensureInitialized()).called(1);
+        verify(mockEngine.ensureInitialized).called(1);
 
         await ImageTransformer.terminate();
-        verify(() => mockEngine.terminate()).called(1);
+        verify(mockEngine.terminate).called(1);
       },
     );
 
     test(
-      'native() factory should create instance without crashing (or catch UnsupportedError)',
+      'native() factory should create instance without crashing '
+      '(or catch UnsupportedError)',
       () {
         try {
           final instance = ImageTransformer.native();
           expect(instance, isNotNull);
         } catch (e) {
-          // May throw UnsupportedError or Exception depending on native init
           expect(e, isNotNull);
         }
       },
     );
 
     test(
-      'TransformerEngine.instance should invoke createTransformerEngine (or catch UnsupportedError)',
+      'TransformerEngine.instance should invoke createTransformerEngine '
+      '(or catch UnsupportedError)',
       () {
-        // Clear _instance mock if any
         TransformerEngine.setMockInstanceForTesting(null);
         try {
           final engine = TransformerEngine.instance;

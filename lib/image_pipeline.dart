@@ -1,10 +1,17 @@
-/// A high-performance, cross-platform image processing library.
+/// A cross-platform image processing library for Dart and Flutter.
 ///
-/// This library provides a unified API for applying transformations to images
-/// (like resizing and quality adjustments) across Mobile, Desktop, and Web.
-/// It uses highly optimized native C bindings (libvips) for IO platforms and
-/// WASM bindings for the Web.
-library image_pipeline;
+/// Example usage:
+/// ```dart
+/// final transformer = ImageTransformer.native();
+/// final Uint8List result = await transformer.transform(
+///   imageBytes,
+///   [
+///     const ResizeOp(maxWidth: 500, maxHeight: 500),
+///     const QualityOp(quality: 80),
+///   ],
+/// );
+/// ```
+library;
 
 export 'src/operations/operations.dart';
 export 'src/transformer.dart';

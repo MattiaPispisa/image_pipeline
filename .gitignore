@@ -20,3 +20,5 @@ test/src/native/web/photon_rs.js
 test/src/native/web/transformer.js
 test/src/native/web/transformer_worker.js
 test/src/native/io/mobile/io_transformer_bindings_test_mob_generated.dart
+
+!example/main.dart

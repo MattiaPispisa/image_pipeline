@@ -1,4 +1,6 @@
 @TestOn('vm')
+library;
+
 import 'dart:typed_data';
 
 import 'package:image_pipeline/image_pipeline.dart';
@@ -30,7 +32,7 @@ void main() {
       () async {
         for (final originalBytes in originalImages) {
           expect(
-            await ImageTransformer.native().transform(originalBytes, [
+            await ImageTransformer.native().transform(originalBytes, const [
               ResizeOp(maxWidth: 100, maxHeight: 200),
               QualityOp(quality: 80),
             ]),
@@ -83,8 +85,6 @@ void main() {
             [const ResizeOp(maxWidth: 10000, maxHeight: 10000)],
           );
 
-          // C clamps scale to 1.0, so the pipeline shouldn't resize.
-          // The JPG compression should yield identical bytes since input pixels and quality (75) are identical.
           expect(largeResult.length, equals(originalResult.length));
         }
       },

@@ -3,6 +3,12 @@ import 'dart:ffi' as ffi;
 import 'package:image_pipeline/src/native/io/io_bindings.dart';
 import './io_transformer_bindings_test_mob_generated.dart' as bindings;
 
+/// creates a [IoBindings] instance for testing purposes
+///
+/// A native asset is creteated with the mobile bindings
+/// for desktop platforms.
+///
+/// This allows to test the stb lib.
 IoBindings createIoTestMobBindings() => IoTestMobBindingsImpl();
 
 class IoTestMobBindingsImpl implements IoBindings {

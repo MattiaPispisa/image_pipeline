@@ -1,6 +1,7 @@
-// tool/download_assets.dart
+// ignore_for_file: avoid_print just for tool purpose.
+
 import 'dart:io';
-import 'package:archive/archive_io.dart';
+import 'package:archive/archive_io.dart' as archive;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
 
@@ -9,22 +10,19 @@ const String repoName = 'image_pipeline';
 
 Future<void> main(List<String> args) async {
   final version = args.isEmpty ? _pubspecVersion() : args.first;
-  print('🚀 Inizio setup asset per la versione $version...\n');
+  print('🚀 Starting setup assets for version $version...\n');
 
   final tempDir = Directory.systemTemp.createTempSync('image_pipeline_assets_');
 
   try {
     await _setupWebAssets(version, tempDir);
 
-    // In futuro, potrai aggiungere qui una funzione _setupDesktopAssets(version, tempDir)
-
-    print('\n🎉 Setup di tutti gli asset completato con successo!');
+    print('\n🎉 Setup of all assets completed successfully!');
   } catch (e) {
-    print('\n❌ Si è verificato un errore critico:');
+    print('\n❌ An error occurred:');
     print(e);
     exit(1);
   } finally {
-    // Pulizia file temporanei (eseguita sempre, anche in caso di crash)
     if (tempDir.existsSync()) {
       tempDir.deleteSync(recursive: true);
     }
@@ -34,10 +32,10 @@ Future<void> main(List<String> args) async {
 String _pubspecVersion() {
   final pubspecFile = File('pubspec.yaml');
   if (!pubspecFile.existsSync()) {
-    throw Exception("File pubspec.yaml non trovato nella root.");
+    throw Exception('pubspec.yaml not found in the root.');
   }
 
-  final doc = yaml.loadYaml(pubspecFile.readAsStringSync());
+  final doc = yaml.loadYaml(pubspecFile.readAsStringSync()) as yaml.YamlMap;
   final rawVersion = doc['version'] as String;
 
   final cleanVersion = rawVersion.split('+').first;
@@ -45,44 +43,40 @@ String _pubspecVersion() {
 }
 
 Future<void> _setupWebAssets(String version, Directory tempDir) async {
-  final webAsset = 'web_transformer.zip';
+  const webAsset = 'web_transformer.zip';
   final downloadUrl =
       'https://github.com/$repoOwner/$repoName/releases/download/$version/$webAsset';
   final tempZipPath = path.join(tempDir.path, webAsset);
 
-  print('🌐 [WEB] Download in corso: $webAsset');
+  print('🌐 [WEB] Downloading $webAsset');
   await _downloadFile(downloadUrl, tempZipPath);
 
-  // Calcola il percorso di destinazione nel progetto
   final targetWebDir = Directory(path.join('test', 'src', 'native', 'web'));
 
-  // Crea la cartella se non esiste
   if (!targetWebDir.existsSync()) {
     targetWebDir.createSync(recursive: true);
   }
 
-  print('📦 [WEB] Estrazione dei file in: ${targetWebDir.path}');
-  // Estrae il contenuto dello zip direttamente nella cartella di test
-  extractFileToDisk(tempZipPath, targetWebDir.path);
+  print('📦 [WEB] Extracting files to: ${targetWebDir.path}');
+  await archive.extractFileToDisk(tempZipPath, targetWebDir.path);
 
-  print('✅ [WEB] Asset posizionati correttamente.');
+  print('✅ [WEB] Assets correctly positioned.');
 }
 
-/// Utility generica per il download di file tramite HTTP
 Future<void> _downloadFile(String url, String savePath) async {
   final client = HttpClient();
   try {
     final request = await client.getUrl(Uri.parse(url));
     final response = await request.close();
 
-    // GitHub spesso usa redirect 302 per gli asset, HttpClient li segue di default
     if (response.statusCode == 404) {
       throw Exception(
-        'Asset non trovato (404). Verifica che il tag della release e il nome del file siano corretti.',
+        'Asset not found (404).'
+        ' Check that the release tag and filename are correct.',
       );
     } else if (response.statusCode >= 400) {
       throw Exception(
-        'Errore HTTP ${response.statusCode} durante il download.',
+        'HTTP Error ${response.statusCode} during download.',
       );
     }
 

@@ -1,0 +1,7 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  errors:
+    avoid_catches_without_on_clauses: ignore
+    one_member_abstracts: ignore
+    use_setters_to_change_properties: ignore

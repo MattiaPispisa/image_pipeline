@@ -1,8 +1,10 @@
+// ignore_for_file: avoid_print just for demo
+
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:image_pipeline/image_pipeline.dart';
 
-const _sampleImagePath = 'example/sample.jpeg'; //../assets/sample/
+const _sampleImagePath = '../assets/sample/sample.jpeg';
 const _sampleOutputImagePath = 'example/transformed_sample.jpeg';
 
 void main() async {
@@ -32,5 +34,5 @@ Future<Uint8List> _getFileOrThrow() async {
   if (!inputFile.existsSync()) {
     throw Exception('Error: $_sampleImagePath not found.');
   }
-  return await inputFile.readAsBytes();
+  return inputFile.readAsBytes();
 }

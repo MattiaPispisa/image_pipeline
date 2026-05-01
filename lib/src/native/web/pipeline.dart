@@ -1,31 +1,35 @@
 import 'dart:js_interop';
 import 'dart:typed_data';
 
-import 'package:image_pipeline/src/pipeline.dart' as pipeline;
 import 'package:image_pipeline/src/engine.dart';
 import 'package:image_pipeline/src/native/web/web_transformer_bindings.dart'
     as bindings;
+import 'package:image_pipeline/src/pipeline.dart' as pipeline;
 
+/// Creates a [pipeline.Pipeline] implementation for web platforms.
 pipeline.Pipeline createPipeline() => WebPipeline();
 
+/// {@template web_pipeline}
+/// The web implementation of the [pipeline.Pipeline].
+/// {@endtemplate}
 class WebPipeline implements pipeline.Pipeline {
-  final List<int> _operations = [];
+  /// {@macro web_pipeline}
+  WebPipeline() : _operations = [];
+
+  final List<int> _operations;
 
   @override
   Future<Uint8List> execute(Uint8List input) async {
     await TransformerEngine.instance.ensureInitialized();
 
-    // Convert standard Dart typed lists directly to their JS equivalents
     final inputJs = input.toJS;
     final operationsJs = Int32List.fromList(_operations).toJS;
 
     try {
-      // Execute the Javascript side, resolving the JSPromise
       final jsResult = await bindings
           .executePipeline(inputJs, operationsJs)
           .toDart;
 
-      // Convert JSUint8Array back to Dart Uint8List
       return jsResult.toDart;
     } catch (e) {
       throw Exception('Failed to transform image on Web: $e');

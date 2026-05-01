@@ -10,33 +10,45 @@ environment:
 
 dependencies:
   code_assets: ^1.0.0
-  hooks: ^1.0.0
   en_logger: ^1.3.0
-  http: ^1.0.0
-  native_toolchain_c: 
   ffi: ^2.1.0
-  path: 
+  hooks: ^1.0.0
+  http: ^1.0.0
+  native_toolchain_c: ">=0.17.5 <0.19.0"
+  path: ^1.8.0
 
 dev_dependencies:
+  # /tool
+  archive: ^4.0.0
+  benchmark_harness: ^2.4.0
   coverage: ^1.15.0
   ffigen: ^10.0.0
-  mocktail: ^1.0.5
-  test: 
-  archive:
-  yaml:
-  benchmark_harness: ^2.4.0
+
+  # just for benchmarks
   image: ^4.8.0
+
+  # testing
+  mocktail: ^1.0.5
+  test: ^1.25.0
+
+  # code analysis
+  very_good_analysis: ^10.2.0
+
+  web: ^1.0.0
+
+  # /tool
+  yaml: ^3.0.0
 
 ffigen:
   name: TransformerBindings
   description: Bindings per trasformare le immagini
-  output: 'lib/src/native/io/io_transformer_bindings_generated.dart'
+  output: "lib/src/native/io/io_transformer_bindings_generated.dart"
 
   ffi-native:
-    assetId: 'package:image_pipeline/io_transformer'
+    assetId: "package:image_pipeline/io_transformer"
 
   headers:
     entry-points:
-      - 'native/io/transform.h'
+      - "native/io/transform.h"
     include-directives:
-      - 'native/io/transform.h'
+      - "native/io/transform.h"

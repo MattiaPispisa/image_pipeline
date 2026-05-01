@@ -1,13 +1,15 @@
 @TestOn('browser') // Forza l'esecuzione solo su browser
+library;
+
 import 'dart:async';
+import 'dart:js_interop';
+import 'dart:typed_data';
 
 import 'package:image_pipeline/image_pipeline.dart';
 import 'package:image_pipeline/src/engine.dart';
 import 'package:image_pipeline/src/native/web/engine.dart';
 import 'package:test/test.dart';
 import 'package:web/web.dart' as web;
-import 'dart:js_interop';
-import 'dart:typed_data';
 
 import 'load_assets.dart';
 
@@ -19,15 +21,16 @@ void main() {
       final script =
           web.document.createElement('script') as web.HTMLScriptElement;
 
-      // Il percorso esatto rispetto alla cartella test/
+      // version script to avoid caching
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       script.src = 'transformer.js?v=$timestamp';
 
       final completer = Completer<void>();
-      script.onload = ((web.Event _) => completer.complete()).toJS;
-      script.onerror = ((web.Event _) => completer.completeError(
-        'Errore caricamento script JS',
-      )).toJS;
+      script
+        ..onload = ((web.Event _) => completer.complete()).toJS
+        ..onerror = ((web.Event _) => completer.completeError(
+          'Error loading the transformer library',
+        )).toJS;
 
       web.document.head!.append(script);
       await completer.future;
@@ -52,7 +55,7 @@ void main() {
       () async {
         for (final originalBytes in originalImages) {
           expect(
-            await ImageTransformer.native().transform(originalBytes, [
+            await ImageTransformer.native().transform(originalBytes, const [
               ResizeOp(maxWidth: 100, maxHeight: 200),
               QualityOp(quality: 80),
             ]),
@@ -105,8 +108,6 @@ void main() {
             [const ResizeOp(maxWidth: 10000, maxHeight: 10000)],
           );
 
-          // C clamps scale to 1.0, so the pipeline shouldn't resize.
-          // The JPG compression should yield identical bytes since input pixels and quality (75) are identical.
           expect(largeResult.length, equals(originalResult.length));
         }
       },

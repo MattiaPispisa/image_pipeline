@@ -6,21 +6,33 @@ import 'package:image_pipeline/src/engine.dart';
 import 'package:image_pipeline/src/native/io/io_bindings.dart';
 import 'package:image_pipeline/src/native/io/worker.dart';
 
+/// Creates an image transformation engine for the IO platform.
+///
+/// This engine uses native bindings for image processing and spawns
+/// worker isolates to perform transformations asynchronously.
 TransformerEngine createTransformerEngine() => IoTransformerEngine();
 
+/// {@template io_transformer_engine}
 /// The native IO implementation of the [TransformerEngine].
 ///
-/// This engine manages the native `libvips` C bindings and provides a worker
-/// pool (via isolates) to ensure image processing does not block the UI thread.
+/// This engine manages the native bindings for image processing and provides
+/// a worker pool (via isolates) to ensure image processing does not block
+/// the UI thread.
+/// {@endtemplate}
 class IoTransformerEngine extends TransformerEngine {
-  bool _isInitialized = false;
-  ImageWorker _worker = ShortLivedImageWorker();
+  /// {@macro io_transformer_engine}
+  IoTransformerEngine()
+    : _isInitialized = false,
+      _worker = const ShortLivedImageWorker();
+
+  bool _isInitialized;
+  ImageWorker _worker;
 
   /// Uses a new, short-lived isolate for each transformation.
   /// This is the default behavior.
   void useShortLivedWorker() {
     _worker.close();
-    _worker = ShortLivedImageWorker();
+    _worker = const ShortLivedImageWorker();
   }
 
   /// Spawns a persistent background isolate that handles all transformations.
@@ -71,7 +83,9 @@ extension TransformerEngineIoExtension on TransformerEngine {
   /// Throws an [UnsupportedError] if called on a non-IO platform (e.g., Web).
   IoTransformerEngine get io {
     if (this is! IoTransformerEngine) {
-      throw UnsupportedError('The IO extension is only available on native platforms.');
+      throw UnsupportedError(
+        'The IO extension is only available on native platforms.',
+      );
     }
     return this as IoTransformerEngine;
   }

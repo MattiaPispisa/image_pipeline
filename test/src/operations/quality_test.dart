@@ -1,7 +1,10 @@
 @TestOn('vm')
-import 'package:test/test.dart';
-import 'package:mocktail/mocktail.dart';
+library;
+
 import 'package:image_pipeline/src/operations/quality.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:test/test.dart';
+
 import '../mocks.dart';
 
 void main() {
@@ -9,9 +12,7 @@ void main() {
     test('should call setQuality on pipeline with correct value', () {
       final pipeline = MockPipeline();
       const quality = 80;
-      final op = const QualityOp(quality: quality);
-
-      op.apply(pipeline);
+      const QualityOp(quality: quality).apply(pipeline);
 
       verify(() => pipeline.setQuality(quality)).called(1);
     });

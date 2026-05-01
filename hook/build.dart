@@ -1,8 +1,11 @@
+// ignore_for_file: avoid_print necessary for the hook script to work
+
 import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'package:hooks/hooks.dart';
+
 import 'package:code_assets/code_assets.dart';
 import 'package:en_logger/en_logger.dart';
+import 'package:hooks/hooks.dart';
+import 'package:http/http.dart' as http;
 import 'package:native_toolchain_c/native_toolchain_c.dart' as native_toolchain;
 import 'package:path/path.dart' as path;
 
@@ -62,7 +65,6 @@ Future<void> _mobileBuild({
       libraries: ['m'],
     );
 
-    // CBuilder si occupa automaticamente di aggiungere l'asset a `output.assets.code`
     await builder.run(input: input, output: output);
 
     logger.info('Mobile build ($assetName) completed successfully!');
@@ -85,7 +87,7 @@ Future<void> _desktopBuild({
     final versionTag = await _getLibraryVersion(input);
 
     final downloadFileName = '$_ioRemoteAssetFileName-$osName-$archName.$ext';
-    Uri? finalLibraryUri = await _downloadPrebuiltAsset(
+    var finalLibraryUri = await _downloadPrebuiltAsset(
       input: input,
       logger: logger,
       version: versionTag,
@@ -154,7 +156,7 @@ Future<void> _desktopBuild({
 Future<String> _getLibraryVersion(BuildInput input) async {
   final pubspecFile = File.fromUri(input.packageRoot.resolve('pubspec.yaml'));
 
-  if (!await pubspecFile.exists()) {
+  if (!pubspecFile.existsSync()) {
     throw Exception('Unable to find pubspec.yaml in ${input.packageRoot}');
   }
 
@@ -183,7 +185,7 @@ Future<Uri?> _downloadPrebuiltAsset({
   final downloadedFileUri = input.outputDirectory.resolve(fileName);
   final file = File.fromUri(downloadedFileUri);
 
-  if (await file.exists()) {
+  if (file.existsSync()) {
     logger.info('Native binary found in cache: $fileName');
     return downloadedFileUri;
   }
@@ -242,7 +244,8 @@ Future<Uri> _fallbackLocalBuild({
 
   if (cmakeConfig.exitCode != 0) {
     throw Exception(
-      'CMake configuration failed (do you have libvips installed locally?):\n${cmakeConfig.stderr}',
+      'CMake configuration failed (do you have libvips installed locally?):\n'
+      '${cmakeConfig.stderr}',
     );
   }
 
@@ -261,9 +264,10 @@ Future<Uri> _fallbackLocalBuild({
   final compiledFileName = '$_cmakeFileName.$ext';
   final compiledLibUri = input.outputDirectory.resolve(compiledFileName);
 
-  if (!await File.fromUri(compiledLibUri).exists()) {
+  if (!File.fromUri(compiledLibUri).existsSync()) {
     throw Exception(
-      'Build apparently successful, but the file $compiledFileName was not generated.',
+      'Build apparently successful,'
+      ' but the file $compiledFileName was not generated.',
     );
   }
 
@@ -319,6 +323,6 @@ class _PrintHandler extends EnLoggerHandler {
       messageBuffer.write('\n\n$stackTrace');
     }
 
-    print(messageBuffer.toString());
+    print(messageBuffer);
   }
 }

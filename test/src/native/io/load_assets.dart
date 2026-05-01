@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+/// loads all assets from the assets/sample folder
 List<Uint8List> loadIoAssets() {
   final currentPath = Directory.current.path;
 

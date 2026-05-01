@@ -1,16 +1,16 @@
 import 'dart:typed_data';
 
+import 'package:image_pipeline/src/engine.dart';
 import 'package:image_pipeline/src/operations/operation.dart';
 import 'package:image_pipeline/src/pipeline.dart';
 import 'package:image_pipeline/src/pipeline_factory.dart';
 
-import 'package:image_pipeline/src/engine.dart';
-
+/// {@template image_transformer}
 /// The main entry point for processing images.
 ///
 /// Use [ImageTransformer.native] to automatically select the optimal processing
 /// pipeline for the current platform (e.g., FFI for IO, WASM for Web).
-/// 
+///
 /// Example usage:
 /// ```dart
 /// final transformer = ImageTransformer.native();
@@ -22,12 +22,21 @@ import 'package:image_pipeline/src/engine.dart';
 ///   ],
 /// );
 /// ```
+/// {@endtemplate}
 abstract class ImageTransformer {
+  /// {@macro image_transformer}
+  ///
+  /// [ImageTransformer.native] is preferred for ease of use and automatic
+  /// platform detection. This constructor is provided for testing purposes
+  /// or for scenarios where custom pipeline implementations are needed.
+  factory ImageTransformer(Pipeline Function() pipeline) =>
+      _ImplImageTransformer(pipeline);
+
+  /// {@macro image_transformer}
+  ///
   /// Creates an [ImageTransformer] that automatically resolves the native
   /// implementation for the current platform.
   factory ImageTransformer.native() => ImageTransformer(createPipeline);
-  factory ImageTransformer(Pipeline Function() pipeline) =>
-      _ImplImageTransformer(pipeline);
 
   /// Initializes the image processing library.
   /// This is called automatically on the first transformation, but can be
@@ -38,11 +47,12 @@ abstract class ImageTransformer {
   /// Shuts down the image processing library and frees native resources.
   static Future<void> terminate() => TransformerEngine.instance.terminate();
 
-  /// Transforms the [input] image bytes by sequentially applying the given [operations].
+  /// Transforms the [input] image bytes by sequentially
+  /// applying the given [operations].
   ///
-  /// The operations are bundled and executed in a single native pass when possible
-  /// for maximum performance.
-  /// 
+  /// The operations are bundled and executed in a single native pass
+  /// when possible for maximum performance.
+  ///
   /// Returns a [Future] that resolves to the processed image bytes.
   Future<Uint8List> transform(Uint8List input, List<ImageOperation> operations);
 }

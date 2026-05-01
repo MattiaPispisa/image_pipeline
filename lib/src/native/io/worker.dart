@@ -7,15 +7,26 @@ import 'package:ffi/ffi.dart' as pkg_ffi;
 import 'package:image_pipeline/src/engine.dart';
 import 'package:image_pipeline/src/native/io/io_bindings.dart' as bindings;
 
+/// {@template image_worker}
+/// The [ImageWorker] interface for IO platforms.
+/// {@endtemplate}
+sealed class ImageWorker {
+  const ImageWorker();
 
-
-abstract class ImageWorker {
+  /// {@macro image_worker}
   Future<Uint8List> transform(Uint8List input, List<int> operations);
+
+  /// close the worker
   void close();
 }
 
+/// {@template short_lived_image_worker}
 /// A worker that spawns an isolate per request using [Isolate.run].
-class ShortLivedImageWorker implements ImageWorker {
+/// {@endtemplate}
+final class ShortLivedImageWorker implements ImageWorker {
+  /// {@macro short_lived_image_worker}
+  const ShortLivedImageWorker();
+
   @override
   Future<Uint8List> transform(Uint8List input, List<int> operations) async {
     return Isolate.run(() => _performTransform(input, operations));
@@ -25,22 +36,26 @@ class ShortLivedImageWorker implements ImageWorker {
   void close() {}
 }
 
+/// {@template long_lived_image_worker}
 /// A long-lived worker isolate that waits for commands via a [ReceivePort].
-class LongLivedImageWorker implements ImageWorker {
+/// {@endtemplate}
+final class LongLivedImageWorker implements ImageWorker {
+  /// {@macro long_lived_image_worker}
+  LongLivedImageWorker._(this._responses, this._commands) {
+    _responses.listen(_handleResponsesFromIsolate);
+  }
+
   final SendPort _commands;
   final ReceivePort _responses;
   final Map<int, Completer<Object?>> _activeRequests = {};
   int _idCounter = 0;
   bool _closed = false;
 
-  LongLivedImageWorker._(this._responses, this._commands) {
-    _responses.listen(_handleResponsesFromIsolate);
-  }
-
+  /// Spawns a new long-lived worker.
   static Future<LongLivedImageWorker> spawn() async {
     final initPort = RawReceivePort();
     final connection = Completer<(ReceivePort, SendPort)>.sync();
-    initPort.handler = (initialMessage) {
+    initPort.handler = (dynamic initialMessage) {
       final commandPort = initialMessage as SendPort;
       connection.complete((
         ReceivePort.fromRawReceivePort(initPort),
@@ -55,7 +70,8 @@ class LongLivedImageWorker implements ImageWorker {
       rethrow;
     }
 
-    final (ReceivePort receivePort, SendPort sendPort) = await connection.future;
+    final (ReceivePort receivePort, SendPort sendPort) =
+        await connection.future;
     return LongLivedImageWorker._(receivePort, sendPort);
   }
 
@@ -66,9 +82,12 @@ class LongLivedImageWorker implements ImageWorker {
     final id = _idCounter++;
     _activeRequests[id] = completer;
     _commands.send((id, input, operations));
-    
+
     final result = await completer.future;
-    return result as Uint8List;
+    if (result is! Uint8List) {
+      throw Exception('Expected Uint8List but got ${result.runtimeType}');
+    }
+    return result;
   }
 
   void _handleResponsesFromIsolate(dynamic message) {
@@ -89,16 +108,19 @@ class LongLivedImageWorker implements ImageWorker {
     }
   }
 
-  static void _handleCommandsToIsolate(ReceivePort receivePort, SendPort sendPort) {
+  static void _handleCommandsToIsolate(
+    ReceivePort receivePort,
+    SendPort sendPort,
+  ) {
     receivePort.listen((message) async {
       if (message == 'shutdown') {
         receivePort.close();
         return;
       }
-      
-      final (int id, Uint8List input, List<int> operations) = 
+
+      final (int id, Uint8List input, List<int> operations) =
           message as (int, Uint8List, List<int>);
-          
+
       try {
         final result = await _performTransform(input, operations);
         sendPort.send((id, result));
@@ -127,7 +149,10 @@ class LongLivedImageWorker implements ImageWorker {
 }
 
 /// The core transformation logic that runs inside an isolate.
-Future<Uint8List> _performTransform(Uint8List input, List<int> operations) async {
+Future<Uint8List> _performTransform(
+  Uint8List input,
+  List<int> operations,
+) async {
   await TransformerEngine.instance.ensureInitialized();
 
   final inputBuffer = pkg_ffi.calloc<ffi.Uint8>(input.length);
