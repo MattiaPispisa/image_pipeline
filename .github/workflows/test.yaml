@@ -1,12 +1,6 @@
 name: test
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
-  
   workflow_run:
     workflows: ["build"]
     types:
@@ -52,7 +46,7 @@ jobs:
       - name: 🔄 Format & Merge Coverage
         run: |
           dart pub global activate coverage
-          
+
           dart pub global run coverage:format_coverage \
             --lcov --in=coverage_native --out=coverage/native.lcov \
             --packages=.dart_tool/package_config.json --report-on=lib
