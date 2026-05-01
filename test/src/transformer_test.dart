@@ -37,7 +37,7 @@ void main() {
         verify(() => pipeline.setQuality(90)).called(1);
         verify(() => pipeline.resize(100, null)).called(1);
         verify(() => pipeline.execute(input)).called(1);
-        expect(result, equals(input));
+        expect(result.bytes, equals(input));
       },
     );
 

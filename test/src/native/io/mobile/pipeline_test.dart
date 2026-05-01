@@ -31,13 +31,16 @@ void main() {
       'resize() and setQuality() run without errors on real device',
       () async {
         for (final originalBytes in originalImages) {
-          expect(
-            await ImageTransformer.native().transform(originalBytes, const [
+          final result = await ImageTransformer.native().transform(
+            originalBytes,
+            const [
               ResizeOp(maxWidth: 100, maxHeight: 200),
               QualityOp(quality: 80),
-            ]),
-            isA<Uint8List>(),
+            ],
           );
+          expect(result, isA<TransformResult>());
+          expect(result.mimeType, equals('image/jpeg'));
+          expect(result.extension, equals('jpg'));
         }
       },
     );
@@ -53,7 +56,7 @@ void main() {
           [const QualityOp(quality: 10)],
         );
 
-        expect(lowQuality.length, lessThan(highQuality.length));
+        expect(lowQuality.bytes.length, lessThan(highQuality.bytes.length));
       }
     });
 
@@ -68,7 +71,7 @@ void main() {
           [const ResizeOp(maxWidth: 50, maxHeight: 50)],
         );
 
-        expect(smallResult.length, lessThan(originalResult.length));
+        expect(smallResult.bytes.length, lessThan(originalResult.bytes.length));
       }
     });
 
@@ -85,7 +88,7 @@ void main() {
             [const ResizeOp(maxWidth: 10000, maxHeight: 10000)],
           );
 
-          expect(largeResult.length, equals(originalResult.length));
+          expect(largeResult.bytes.length, equals(originalResult.bytes.length));
         }
       },
     );

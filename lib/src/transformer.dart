@@ -4,6 +4,7 @@ import 'package:image_pipeline/src/engine.dart';
 import 'package:image_pipeline/src/operations/operation.dart';
 import 'package:image_pipeline/src/pipeline.dart';
 import 'package:image_pipeline/src/pipeline_factory.dart';
+import 'package:mime/mime.dart' as mime;
 
 /// {@template image_transformer}
 /// The main entry point for processing images.
@@ -14,7 +15,7 @@ import 'package:image_pipeline/src/pipeline_factory.dart';
 /// Example usage:
 /// ```dart
 /// final transformer = ImageTransformer.native();
-/// final Uint8List result = await transformer.transform(
+/// final result = await transformer.transform(
 ///   imageBytes,
 ///   [
 ///     const ResizeOp(maxWidth: 500, maxHeight: 500),
@@ -23,7 +24,7 @@ import 'package:image_pipeline/src/pipeline_factory.dart';
 /// );
 /// ```
 /// {@endtemplate}
-abstract class ImageTransformer {
+abstract interface class ImageTransformer {
   /// {@macro image_transformer}
   ///
   /// [ImageTransformer.native] is preferred for ease of use and automatic
@@ -54,7 +55,31 @@ abstract class ImageTransformer {
   /// when possible for maximum performance.
   ///
   /// Returns a [Future] that resolves to the processed image bytes.
-  Future<Uint8List> transform(Uint8List input, List<ImageOperation> operations);
+  Future<TransformResult> transform(
+    Uint8List input,
+    List<ImageOperation> operations,
+  );
+}
+
+/// {@template transform_result}
+/// The result of an image transformation.
+/// {@endtemplate}
+class TransformResult {
+  /// {@macro transform_result}
+  const TransformResult({
+    required this.bytes,
+    required this.mimeType,
+  });
+
+  /// The processed image bytes.
+  final Uint8List bytes;
+
+  /// The format of the output image.
+  final String? mimeType;
+
+  /// The format extension.
+  String? get extension =>
+      mimeType != null ? mime.extensionFromMime(mimeType!) : null;
 }
 
 class _ImplImageTransformer implements ImageTransformer {
@@ -63,15 +88,19 @@ class _ImplImageTransformer implements ImageTransformer {
   final Pipeline Function() _pipelineFactory;
 
   @override
-  Future<Uint8List> transform(
+  Future<TransformResult> transform(
     Uint8List input,
     List<ImageOperation> operations,
-  ) {
+  ) async {
     final pipeline = _pipelineFactory();
     for (final op in operations) {
       op.apply(pipeline);
     }
 
-    return pipeline.execute(input);
+    final output = await pipeline.execute(input);
+    return TransformResult(
+      bytes: output,
+      mimeType: mime.lookupMimeType('', headerBytes: output),
+    );
   }
 }

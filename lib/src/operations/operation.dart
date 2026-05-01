@@ -7,10 +7,7 @@ import 'package:image_pipeline/src/pipeline.dart';
 /// (e.g., resizing, quality adjustment)
 /// that can be accumulated into a [Pipeline] for batch execution.
 /// {@endtemplate}
-abstract class ImageOperation {
-  /// {@macro image_operation}
-  const ImageOperation();
-
+abstract interface class ImageOperation {
   /// Applies this operation to the given [pipeline].
   void apply(Pipeline pipeline);
 }

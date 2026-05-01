@@ -47,7 +47,7 @@ void main() async {
 
   // 3. Transform the image
   final transformer = ImageTransformer.native();
-  final Uint8List processedBytes = await transformer.transform(
+  final result = await transformer.transform(
     imageBytes,
     [
       const ResizeOp(maxWidth: 500, maxHeight: 500),
@@ -55,7 +55,8 @@ void main() async {
     ],
   );
 
-  // Use processedBytes!
+  // Use result.bytes!
+  final processedBytes = result.bytes;
 }
 ```
 

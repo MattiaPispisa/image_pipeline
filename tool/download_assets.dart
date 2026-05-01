@@ -39,14 +39,17 @@ Future<void> _setupWebAssets(String version, Directory tempDir) async {
   print('🌐 [WEB] Downloading $webAsset');
   await downloadFile(downloadUrl, tempZipPath);
 
-  final targetWebDir = Directory(path.join('test', 'src', 'native', 'web'));
+  final targetWebDirs = [
+    Directory(path.join('test', 'src', 'native', 'web')),
+    Directory(path.join('flutter_example', 'web')),
+  ];
 
-  if (!targetWebDir.existsSync()) {
-    targetWebDir.createSync(recursive: true);
+  for (final targetWebDir in targetWebDirs) {
+    if (!targetWebDir.existsSync()) {
+      targetWebDir.createSync(recursive: true);
+    }
+    print('📦 [WEB] Extracting files to: ${targetWebDir.path}');
+    await archive.extractFileToDisk(tempZipPath, targetWebDir.path);
+    print('✅ [WEB] Assets correctly positioned.');
   }
-
-  print('📦 [WEB] Extracting files to: ${targetWebDir.path}');
-  await archive.extractFileToDisk(tempZipPath, targetWebDir.path);
-
-  print('✅ [WEB] Assets correctly positioned.');
 }

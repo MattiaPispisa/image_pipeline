@@ -6,10 +6,7 @@ import 'dart:typed_data';
 /// `ImageTransformer` uses this interface to bundle the requested operations
 /// and execute them in a single optimized pass.
 /// {@endtemplate}
-abstract class Pipeline {
-  /// {@macro pipeline}
-  const Pipeline();
-
+abstract interface class Pipeline {
   /// Schedules a resize operation.
   ///
   /// The image will be resized to fit within [maxWidth] and [maxHeight] while

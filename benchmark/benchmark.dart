@@ -59,7 +59,7 @@ class NativePipelineBenchmark extends AsyncBenchmarkBase {
         const QualityOp(quality: 80),
       ],
     );
-    if (result.isEmpty) throw Exception('Transformation failed');
+    if (result.bytes.isEmpty) throw Exception('Transformation failed');
   }
 }
 
