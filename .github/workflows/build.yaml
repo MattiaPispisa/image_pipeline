@@ -97,6 +97,15 @@ jobs:
 
           make
 
+      - name: 🛠️ Build Library (Windows)
+        if: startsWith(matrix.os, 'windows')
+        shell: msys2 {0}
+        run: |
+          mkdir build
+          cd build
+          cmake ../native/io/desktop -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+          cmake --build .
+
       # PACKAGE ARTIFACTS
 
       - name: 🏷️ Package Artifact (macOS)
@@ -114,18 +123,12 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         shell: msys2 {0}
         run: |
-          echo "Current MSYS2 directory: $(pwd)"
-
           DLL_PATH=$(find . -name "*io_desktop_transformer*.dll" | head -n 1)
 
           if [ -z "$DLL_PATH" ]; then
-            echo "Fatal error: DLL not found!"
-            echo "Here are the compiled files:"
             find . -name "*.dll"
             exit 1
           fi
-
-          echo "Found DLL at: $DLL_PATH"
 
           # create a clean folder for exporting
           mkdir -p win_bundle
