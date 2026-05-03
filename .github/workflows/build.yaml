@@ -114,7 +114,13 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         shell: msys2 {0}
         run: |
-          mv build/*io_desktop_transformer*.dll build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dll
+          # Find DLL in any subdirectory (e.g., build/bin/...)
+          DLL_PATH=$(find build -name "*io_desktop_transformer*.dll" | head -n 1)
+
+          echo "Found DLL at: $DLL_PATH"
+
+          # Move and rename DLL to build root
+          mv "$DLL_PATH" build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dll
 
           # Collect all dlls for standalone execution
           ldd build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dll | grep "mingw64" | awk '{print $3}' | xargs -I '{}' cp '{}' build/
