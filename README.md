@@ -74,6 +74,11 @@ Thanks to [Dart's Native Assets](https://dart.dev/tools/hooks), Image Pipeline r
   1. Download the `web_transformer.zip` from the [latest release](https://github.com/MattiaPispisa/image_pipeline/releases).
   2. Extract the files (`transformer.js`, `transformer_worker.js`, `photon_rs.js`, `photon_rs_bg.wasm`) into your project's `web/` directory.
   3. Ensure these files are accessible at runtime alongside your `main.dart.js`.
+  4. Import `transformer.js` in your `flutter_bootstrap.js` (suggested) or `index.html` file:
+
+  ```html
+  <script src="transformer.js"></script>
+  ```
 
   When running locally (e.g., `flutter run -d chrome`), ensure your local server is configured to serve `.wasm` files with the correct `application/wasm` MIME type.
 

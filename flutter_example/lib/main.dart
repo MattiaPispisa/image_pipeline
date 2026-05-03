@@ -107,7 +107,7 @@ class _PipelineExampleScreenState extends State<PipelineExampleScreen> {
           shareResult.status == ShareResultStatus.dismissed) {
         _resetForm();
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -123,6 +123,8 @@ class _PipelineExampleScreenState extends State<PipelineExampleScreen> {
           ),
         );
       }
+      print("Error: $e");
+      print("stackTrace: $stackTrace");
     } finally {
       if (mounted) {
         setState(() {
