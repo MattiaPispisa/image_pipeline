@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.10)
 project(image_pipeline_native C)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(VIPS REQUIRED vips)
+pkg_check_modules(VIPS REQUIRED IMPORTED_TARGET vips)
 
 add_library(transformer SHARED transform.c)
 
