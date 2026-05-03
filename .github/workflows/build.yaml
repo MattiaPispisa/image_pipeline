@@ -1,7 +1,7 @@
 name: build
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
   release:
     types: [published]
 
@@ -17,22 +17,22 @@ jobs:
             dart_os: linux
             ext: so
             arch: x64
-            
+
           - os: ubuntu-24.04-arm
             dart_os: linux
             ext: so
             arch: arm64
-          
+
           - os: macos-latest
             dart_os: macos
             ext: dylib
             arch: arm64
-            
+
           - os: macos-latest
             dart_os: macos
             ext: dylib
             arch: x64
-            
+
           - os: windows-latest
             dart_os: windows
             ext: dll
@@ -46,6 +46,8 @@ jobs:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
+      # INSTALL DEPENDENCIES
+
       - name: 📦 Install Dependencies (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         run: |
@@ -56,12 +58,12 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: |
           if [ "${{ matrix.arch }}" == "x64" ]; then
-            # Installa Homebrew e dipendenze x86_64 tramite Rosetta
+            # install x86_64 with Rosetta
             arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            arch -x86_64 /usr/local/bin/brew install cmake pkg-config vips
+            arch -x86_64 /usr/local/bin/brew install cmake pkg-config vips dylibbundler
           else
-            # Installazione standard Homebrew per arm64
-            brew install cmake pkg-config vips
+            # install arm64
+            brew install cmake pkg-config vips dylibbundler
           fi
 
       - name: 📦 Install Dependencies (Windows via MSYS2)
@@ -76,13 +78,15 @@ jobs:
             ${{ matrix.msys_prefix }}-libvips
             ${{ matrix.msys_prefix }}-toolchain
 
+      # BUILD LIBRARY
+
       - name: 🛠️ Build Library (Ubuntu / macOS)
         if: "!startsWith(matrix.os, 'windows')"
         run: |
           mkdir build
           cd build
-          
-          # Se siamo su macOS e vogliamo compilare per x64, forziamo l'ambiente
+
+          # macOS x64
           if [[ "${{ matrix.os }}" == *"macos"* ]] && [ "${{ matrix.arch }}" == "x64" ]; then
             export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/local/opt/vips/lib/pkgconfig"
             export PATH="/usr/local/bin:$PATH"
@@ -90,33 +94,49 @@ jobs:
           else
             cmake ../native/io/desktop -DCMAKE_BUILD_TYPE=Release
           fi
-          
+
           make
 
-      - name: 🛠️ Build Library (Windows)
-        if: startsWith(matrix.os, 'windows')
-        shell: msys2 {0} 
+      # PACKAGE ARTIFACTS
+
+      - name: 🏷️ Package Artifact (macOS)
+        if: startsWith(matrix.os, 'macos')
         run: |
-          mkdir build
+          # rename lib
+          mv build/*io_desktop_transformer*.dylib build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dylib
+
+          # bundle libs + path resolutions
+          dylibbundler -b -x build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dylib -d build/vips_libs -p @loader_path/vips_libs
+
           cd build
-          cmake ../native/io/desktop -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
-          cmake --build .
+          zip -r ../io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.zip io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dylib vips_libs/
 
-      - name: 🏷️ Rename compiled binary (Ubuntu / macOS)
-        if: "!startsWith(matrix.os, 'windows')"
-        run: |
-          mv build/*io_desktop_transformer*.${{ matrix.ext }} io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.${{ matrix.ext }}
-
-      - name: 🏷️ Rename compiled binary (Windows)
+      - name: 🏷️ Package Artifact (Windows)
         if: startsWith(matrix.os, 'windows')
         shell: msys2 {0}
         run: |
-          mv build/*io_desktop_transformer*.${{ matrix.ext }} io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.${{ matrix.ext }}
+          mv build/*io_desktop_transformer*.dll build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dll
+
+          # Collect all dlls for standalone execution
+          ldd build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dll | grep "mingw64" | awk '{print $3}' | xargs -I '{}' cp '{}' build/
+
+          cd build
+          zip -r ../io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.zip *.dll
+
+      - name: 🏷️ Package Artifact (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          # rename lib
+          mv build/*io_desktop_transformer*.so build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.so
+          cd build
+          zip ../io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.zip io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.so
+
+      # UPLOAD ARTIFACTS
 
       - name: 🚀 Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.${{ matrix.ext }}
+          files: io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.zip
 
   build-web:
     runs-on: ubuntu-latest
@@ -141,16 +161,16 @@ jobs:
       - name: 🏷️ Package web artifact
         run: |
           mkdir web_transformer_staging
-          
+
           cp native/web/transformer.js web_transformer_staging/
           cp native/web/transformer_worker.js web_transformer_staging/
-          
+
           cp photon/crate/pkg/photon_rs.js web_transformer_staging/
           cp photon/crate/pkg/photon_rs_bg.wasm web_transformer_staging/
-          
+
           cd web_transformer_staging
           zip -r ../web_transformer.zip ./*
-          
+
       - name: Upload artifact to Action
         uses: actions/upload-artifact@v4
         with:
