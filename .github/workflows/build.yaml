@@ -114,18 +114,30 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         shell: msys2 {0}
         run: |
-          # Find DLL in any subdirectory (e.g., build/bin/...)
-          DLL_PATH=$(find build -name "*io_desktop_transformer*.dll" | head -n 1)
+          echo "Current MSYS2 directory: $(pwd)"
+
+          DLL_PATH=$(find . -name "*io_desktop_transformer*.dll" | head -n 1)
+
+          if [ -z "$DLL_PATH" ]; then
+            echo "Fatal error: DLL not found!"
+            echo "Here are the compiled files:"
+            find . -name "*.dll"
+            exit 1
+          fi
 
           echo "Found DLL at: $DLL_PATH"
 
-          # Move and rename DLL to build root
-          mv "$DLL_PATH" build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dll
+          # create a clean folder for exporting
+          mkdir -p win_bundle
 
-          # Collect all dlls for standalone execution
-          ldd build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dll | grep "mingw64" | awk '{print $3}' | xargs -I '{}' cp '{}' build/
+          # move and rename the dll inside
+          mv "$DLL_PATH" win_bundle/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dll
 
-          cd build
+          # collect all dlls for standalone execution
+          ldd win_bundle/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dll | grep "mingw64" | awk '{print $3}' | xargs -I '{}' cp '{}' win_bundle/
+
+          # zip the content of the new folder
+          cd win_bundle
           zip -r ../io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.zip *.dll
 
       - name: 🏷️ Package Artifact (Ubuntu)
