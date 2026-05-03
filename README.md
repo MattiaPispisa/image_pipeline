@@ -28,6 +28,29 @@ This library allows you to perform a chain of operations on an image (e.g., resi
 
 ---
 
+## Installation
+
+Add the package to your `pubspec.yaml`:
+
+```bash
+dart pub add image_pipeline
+```
+
+### Platform setup
+
+Thanks to [Dart's Native Assets](https://dart.dev/tools/hooks), Image Pipeline requires nearly zero configuration for most platforms:
+
+- **Mobile (iOS & Android):** Zero configuration. The native C code is automatically compiled by Flutter during the app build.
+- **Desktop (macOS, Windows, Linux):** Zero configuration. The build hook automatically downloads and bundles the pre-compiled dynamic libraries for your target architecture.
+- **Web:** Requires a quick manual setup to serve the WASM binaries.
+  1. Download the `web_transformer.zip` from the [latest release](https://github.com/MattiaPispisa/image_pipeline/releases).
+  2. Extract the files (`transformer.js`, `transformer_worker.js`, `photon_rs.js`, `photon_rs_bg.wasm`) into your project's `web/` directory.
+  3. Ensure these files are accessible at runtime alongside your `main.dart.js`.
+
+  When running locally (e.g., `flutter run -d chrome`), ensure your local server is configured to serve `.wasm` files with the correct `application/wasm` MIME type.
+
+---
+
 ## How to Use It
 
 ### 1. Basic Usage
@@ -100,14 +123,6 @@ Currently, we provide prebuilt artifacts for the following matrix:
 ### Web
 
 On the Web, the library utilizes a pipeline compiled to WebAssembly (WASM) for execution in the browser.
-
-To set up the web environment:
-
-1. Download the `web_transformer.zip` from the [latest release](https://github.com/MattiaPispisa/image_pipeline/releases).
-2. Extract the files (`transformer.js`, `transformer_worker.js`, `photon_rs.js`, `photon_rs_bg.wasm`) into your project's `web/` directory.
-3. Ensure these files are accessible at runtime alongside your `main.dart.js`.
-
-When running locally (e.g., `flutter run -d chrome`), ensure your local server is configured to serve `.wasm` files with the correct `application/wasm` MIME type.
 
 ---
 
