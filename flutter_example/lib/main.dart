@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image_pipeline/image_pipeline.dart';
 import 'package:share_plus/share_plus.dart';
 
+const _kTitle = 'Image Pipeline Shares';
+
 void main() {
   runApp(const MyApp());
 }
@@ -14,7 +16,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Image Pipeline Example',
+      title: _kTitle,
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
@@ -143,7 +146,7 @@ class _PipelineExampleScreenState extends State<PipelineExampleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Native Library Test'),
+        title: const Text(_kTitle),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           if (_inputBytes != null)

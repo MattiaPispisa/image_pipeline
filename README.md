@@ -15,6 +15,34 @@ A cross-platform image processing library for Dart and Flutter.
 - **Web**: [Photon](https://silvia-odwyer.github.io/photon/);
 - **Mobile**: [stb](https://github.com/nothings/stb).
 
+## Table of Contents
+
+- [Image Pipeline](#image-pipeline)
+  - [Table of Contents](#table-of-contents)
+  - [What it does](#what-it-does)
+    - [Supported Operations](#supported-operations)
+  - [Installation](#installation)
+    - [Platform setup](#platform-setup)
+  - [How to Use It](#how-to-use-it)
+    - [1. Basic Usage](#1-basic-usage)
+    - [2. IO extension](#2-io-extension)
+  - [Build](#build)
+    - [IO](#io)
+      - [Mobile (Android \& iOS)](#mobile-android--ios)
+      - [Desktop (Windows, macOS, \& Linux)](#desktop-windows-macos--linux)
+    - [Web](#web)
+  - [Benchmarks](#benchmarks)
+    - [Running Benchmarks](#running-benchmarks)
+  - [Development Setup](#development-setup)
+  - [Architecture Design](#architecture-design)
+  - [How to Extend the Library](#how-to-extend-the-library)
+    - [Step 1: Create the Dart Operation](#step-1-create-the-dart-operation)
+    - [Step 2: Update the `Pipeline` Interface](#step-2-update-the-pipeline-interface)
+    - [Step 3: Update the Native Bindings](#step-3-update-the-native-bindings)
+    - [Step 4: Add Tests](#step-4-add-tests)
+  - [Examples](#examples)
+  - [Philosophy](#philosophy)
+
 ## What it does
 
 This library allows you to perform a chain of operations on an image (e.g., resizing, compressing, or formatting) by pushing them into a `Pipeline`. Once all operations are defined, the pipeline executes them in a single native pass.
@@ -213,6 +241,20 @@ Modify the underlying implementation to support the new operation. All the nativ
 ### Step 4: Add Tests
 
 Finally, write automated tests in `test/src/native/io/` and `test/src/native/web/` to ensure your new operation is completely isomorphic across platforms!
+
+---
+
+## Examples
+
+**dart**
+
+A simple dart example is provided within [example](https://github.com/MattiaPispisa/image_pipeline/blob/main/example/main.dart) directory.
+
+**flutter**
+
+A simple flutter example is provided within [flutter_example](https://github.com/MattiaPispisa/image_pipeline/blob/main/flutter_example/lib/main.dart) directory.
+
+![demo](https://raw.githubusercontent.com/MattiaPispisa/image_pipeline/main/assets/demo/image_pipeline_shares_example.gif)
 
 ---
 

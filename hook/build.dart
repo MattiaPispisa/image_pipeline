@@ -84,7 +84,8 @@ Future<void> _desktopBuild({
     final (osName, ext, archName) = _getOsInfo(input);
     final versionTag = await _getLibraryVersion(input);
 
-    final downloadFileName = '$_ioRemoteAssetFileName-$osName-$archName.$ext';
+    final downloadFileName = '$_ioRemoteAssetFileName-$osName-$archName.zip';
+
     var extractedLibraries = await _downloadAndExtractAsset(
       input: input,
       logger: logger,
@@ -182,7 +183,15 @@ Future<List<Uri>> _downloadAndExtractAsset({
 }) async {
   final downloadUrl =
       'https://github.com/$_repoOwner/$_repoName/releases/download/$version/$fileName';
-  final zipFileUri = input.outputDirectory.resolve(fileName);
+
+  final versionDirUri = input.outputDirectory.resolve('$version/');
+  final versionDir = Directory.fromUri(versionDirUri);
+
+  if (!versionDir.existsSync()) {
+    versionDir.createSync(recursive: true);
+  }
+
+  final zipFileUri = versionDirUri.resolve(fileName);
   final zipFile = File.fromUri(zipFileUri);
   final extractedFiles = <Uri>[];
 
@@ -202,7 +211,7 @@ Future<List<Uri>> _downloadAndExtractAsset({
       return [];
     }
   } else {
-    logger.info('Native ZIP found in cache: $fileName');
+    logger.info('Native ZIP found in cache for version $version: $fileName');
   }
 
   try {
@@ -213,15 +222,16 @@ Future<List<Uri>> _downloadAndExtractAsset({
     for (final file in archive) {
       if (file.isFile && !file.name.contains('__MACOSX')) {
         final simpleFilename = path.basename(file.name);
-        final filePath = input.outputDirectory.resolve(simpleFilename);
+
+        // 3. Estraiamo anche le DLL/Dylib direttamente dentro la cartella della versione
+        final filePath = versionDirUri.resolve(simpleFilename);
         final outFile = File.fromUri(filePath);
 
         await outFile.create(recursive: true);
         await outFile.writeAsBytes(file.content as List<int>);
 
-        if (simpleFilename.endsWith('.dylib') ||
-            simpleFilename.endsWith('.dll') ||
-            simpleFilename.endsWith('.so')) {
+        final ext = path.extension(simpleFilename);
+        if (ext == '.dylib' || ext == '.dll' || ext == '.so') {
           extractedFiles.add(filePath);
         }
       }
