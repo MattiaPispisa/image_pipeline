@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:archive/archive.dart' as arch;
 import 'package:code_assets/code_assets.dart';
 import 'package:en_logger/en_logger.dart';
 import 'package:hooks/hooks.dart';
@@ -84,24 +85,27 @@ Future<void> _desktopBuild({
     final versionTag = await _getLibraryVersion(input);
 
     final downloadFileName = '$_ioRemoteAssetFileName-$osName-$archName.$ext';
-    var finalLibraryUri = await _downloadPrebuiltAsset(
+    var extractedLibraries = await _downloadAndExtractAsset(
       input: input,
       logger: logger,
       version: versionTag,
       fileName: downloadFileName,
     );
 
-    if (finalLibraryUri == null) {
-      logger.warning('Download failed. Starting local build...');
-      finalLibraryUri = await _fallbackLocalBuild(
+    if (extractedLibraries.isEmpty) {
+      logger.warning(
+        'Download/Extraction failed. Starting local build fallback...',
+      );
+      final localUri = await _fallbackLocalBuild(
         input: input,
         output: output,
         logger: logger,
         ext: ext,
       );
+      extractedLibraries = [localUri];
     }
 
-    _addAssetToOutput(input, output, finalLibraryUri);
+    _addAssetsToOutput(input, output, extractedLibraries);
 
     logger.info('Build hook completed successfully!');
   } catch (e, stackTrace) {
@@ -170,7 +174,7 @@ Future<String> _getLibraryVersion(BuildInput input) async {
   return 'v$cleanVersion';
 }
 
-Future<Uri?> _downloadPrebuiltAsset({
+Future<List<Uri>> _downloadAndExtractAsset({
   required BuildInput input,
   required EnLogger logger,
   required String version,
@@ -178,31 +182,59 @@ Future<Uri?> _downloadPrebuiltAsset({
 }) async {
   final downloadUrl =
       'https://github.com/$_repoOwner/$_repoName/releases/download/$version/$fileName';
+  final zipFileUri = input.outputDirectory.resolve(fileName);
+  final zipFile = File.fromUri(zipFileUri);
+  final extractedFiles = <Uri>[];
 
-  final downloadedFileUri = input.outputDirectory.resolve(fileName);
-  final file = File.fromUri(downloadedFileUri);
-
-  if (file.existsSync()) {
-    logger.info('Native binary found in cache: $fileName');
-    return downloadedFileUri;
+  if (!zipFile.existsSync()) {
+    logger.info('Downloading $fileName from $downloadUrl ...');
+    try {
+      final response = await http.get(Uri.parse(downloadUrl));
+      if (response.statusCode == 200) {
+        await zipFile.writeAsBytes(response.bodyBytes);
+        logger.info('Download completed!');
+      } else {
+        logger.warning('HTTP error ${response.statusCode} during download.');
+        return [];
+      }
+    } catch (e) {
+      logger.warning('Network exception during download: $e');
+      return [];
+    }
+  } else {
+    logger.info('Native ZIP found in cache: $fileName');
   }
-
-  logger.info('Downloading $fileName from $downloadUrl ...');
 
   try {
-    final response = await http.get(Uri.parse(downloadUrl));
-    if (response.statusCode == 200) {
-      await file.writeAsBytes(response.bodyBytes);
-      logger.info('Download completed!');
-      return downloadedFileUri;
-    } else {
-      logger.warning('HTTP error ${response.statusCode} during download.');
-      return null;
+    logger.info('Extracting $fileName...');
+    final bytes = await zipFile.readAsBytes();
+    final archive = arch.ZipDecoder().decodeBytes(bytes);
+
+    for (final file in archive) {
+      if (file.isFile && !file.name.contains('__MACOSX')) {
+        final simpleFilename = path.basename(file.name);
+        final filePath = input.outputDirectory.resolve(simpleFilename);
+        final outFile = File.fromUri(filePath);
+
+        await outFile.create(recursive: true);
+        await outFile.writeAsBytes(file.content as List<int>);
+
+        if (simpleFilename.endsWith('.dylib') ||
+            simpleFilename.endsWith('.dll') ||
+            simpleFilename.endsWith('.so')) {
+          extractedFiles.add(filePath);
+        }
+      }
     }
+    logger.info(
+      'Extraction completed. Found ${extractedFiles.length} dynamic libraries.',
+    );
   } catch (e) {
-    logger.warning('Network exception during download: $e');
-    return null;
+    logger.warning('Failed to extract ZIP file: $e');
+    return [];
   }
+
+  return extractedFiles;
 }
 
 Future<Uri> _fallbackLocalBuild({
@@ -272,21 +304,26 @@ Future<Uri> _fallbackLocalBuild({
   return compiledLibUri;
 }
 
-void _addAssetToOutput(
+void _addAssetsToOutput(
   BuildInput input,
   BuildOutputBuilder output,
-  Uri fileUri,
+  List<Uri> fileUris,
 ) {
   final packageName = input.packageName;
 
-  output.assets.code.add(
-    CodeAsset(
-      package: packageName,
-      name: _ioCodeAssetName,
-      file: fileUri,
-      linkMode: DynamicLoadingBundled(),
-    ),
-  );
+  for (final fileUri in fileUris) {
+    final fileName = path.basename(fileUri.toFilePath());
+    final isMainLibrary = fileName.startsWith(_ioRemoteAssetFileName);
+
+    output.assets.code.add(
+      CodeAsset(
+        package: packageName,
+        name: isMainLibrary ? _ioCodeAssetName : fileName,
+        file: fileUri,
+        linkMode: DynamicLoadingBundled(),
+      ),
+    );
+  }
 }
 
 extension _BuildInputHelper on BuildInput {

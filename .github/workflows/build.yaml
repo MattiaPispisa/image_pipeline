@@ -102,14 +102,13 @@ jobs:
       - name: 🏷️ Package Artifact (macOS)
         if: startsWith(matrix.os, 'macos')
         run: |
-          # rename lib
           mv build/*io_desktop_transformer*.dylib build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dylib
 
           # bundle libs + path resolutions
-          dylibbundler -b -x build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dylib -d build/vips_libs -p @loader_path/vips_libs
+          dylibbundler -b -x build/io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dylib -d build -p @loader_path
 
           cd build
-          zip -r ../io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.zip io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.dylib vips_libs/
+          zip -j ../io_transformer-${{ matrix.dart_os }}-${{ matrix.arch }}.zip *.dylib
 
       - name: 🏷️ Package Artifact (Windows)
         if: startsWith(matrix.os, 'windows')
