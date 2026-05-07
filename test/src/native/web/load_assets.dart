@@ -37,9 +37,6 @@ Future<WebAssets> loadWebAssets() async {
   final supported = await Future.wait(supportedNames.map(_loadAsset));
   final unsupported = await Future.wait(unsupportedNames.map(_loadAsset));
 
-  print('Supported: $supportedNames');
-  print('Unsupported: $unsupportedNames');
-
   return WebAssets(
     supported: supported,
     unsupported: unsupported,

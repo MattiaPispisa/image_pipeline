@@ -9,8 +9,9 @@ import 'package:mime/mime.dart' as mime;
 /// {@template image_transformer}
 /// The main entry point for processing images.
 ///
-/// Use [ImageTransformer.native] to automatically select the optimal processing
-/// pipeline for the current platform (e.g., FFI for IO, WASM for Web).
+/// Use [ImageTransformer.native] to automatically select the optimal
+/// processing pipeline for the current platform
+/// (e.g., FFI for IO, WASM for Web).
 ///
 /// Example usage:
 /// ```dart

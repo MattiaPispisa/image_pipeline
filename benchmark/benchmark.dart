@@ -106,7 +106,6 @@ class DartImageBenchmark extends AsyncBenchmarkBase {
 void main() async {
   logger.info('Loading sample image...');
 
-  // Trova un file sample.jpeg nella directory
   final file = File('assets/sample/sample.jpeg');
   if (!file.existsSync()) {
     logger.error('Sample image not found at ${file.path}');

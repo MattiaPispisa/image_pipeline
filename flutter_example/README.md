@@ -1,3 +1,3 @@
 # flutter_example
 
-image_pipeline flutter exmaple
+image_pipeline flutter example

@@ -3,7 +3,6 @@ library;
 
 import 'dart:async';
 import 'dart:js_interop';
-import 'dart:typed_data';
 
 import 'package:image_pipeline/image_pipeline.dart';
 import 'package:image_pipeline/src/engine.dart';
