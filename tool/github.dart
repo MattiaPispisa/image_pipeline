@@ -28,7 +28,32 @@ Future<void> downloadFile(String url, String savePath) async {
   await file.writeAsBytes(response.bodyBytes);
 }
 
-Future<List<String>> getReleaseAssets(String version) async {
+class GithubAsset {
+  const GithubAsset({
+    required this.url,
+    required this.id,
+    required this.name,
+  });
+
+  factory GithubAsset.fromJson(Map<String, dynamic> json) {
+    return GithubAsset(
+      url: json['url'] as String,
+      id: json['id'] as int,
+      name: json['name'] as String,
+    );
+  }
+
+  final String url;
+  final int id;
+  final String name;
+
+  @override
+  String toString() {
+    return 'GithubAsset(id: $id, url: $url, name:$name)';
+  }
+}
+
+Future<Iterable<GithubAsset>> getReleaseAssets(String version) async {
   final repo = getPubspec().repository;
   final parts = repo.split('github.com/').last.split('/');
   final owner = parts[0];
@@ -43,5 +68,7 @@ Future<List<String>> getReleaseAssets(String version) async {
   }
 
   final data = jsonDecode(response.body) as Map<String, dynamic>;
-  return (data['assets'] as List<dynamic>).cast<String>();
+  return (data['assets'] as List<dynamic>).map(
+    (asset) => GithubAsset.fromJson(asset as Map<String, dynamic>),
+  );
 }

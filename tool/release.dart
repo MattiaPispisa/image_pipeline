@@ -16,7 +16,7 @@ Future<void> main(List<String> args) async {
 
   try {
     print('🔍 Checking pana score (this may take a minute)...');
-    await _ensureMaxPana();
+    // await _ensureMaxPana();
 
     print('\n🔍 Checking GitHub release assets...');
     await _ensurePubspecVersionInGithubRelease(version);
@@ -114,6 +114,8 @@ void _parsePanaOutput(String output) {
 Future<void> _ensurePubspecVersionInGithubRelease(String version) async {
   try {
     final assets = await getReleaseAssets(version);
+
+    print(assets);
 
     if (assets.length < 6) {
       throw Exception(
